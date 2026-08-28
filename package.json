@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "cap:sync": "npm run build && cap sync android",
+    "lint:android": "cd android && ./gradlew --no-daemon lint",
     "package:android": "node scripts/package-android.mjs",
     "verify:billing": "node scripts/verify-billing.mjs",
     "cap:open": "cap open android"

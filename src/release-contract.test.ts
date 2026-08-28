@@ -36,14 +36,19 @@ describe('release regression contracts', () => {
     expect(plugin).toContain('RecognizerIntent.EXTRA_PREFER_OFFLINE, true');
     expect(plugin).toContain('Manifest.permission.RECORD_AUDIO');
     expect(plugin).toContain('requestPermissionForAlias');
+    expect(plugin).toContain('private final HoldSession holdSession');
+    expect(plugin).toContain('if (!holdSession.isActive(holdToken))');
+    expect(plugin).toContain('@RequiresApi(Build.VERSION_CODES.S)');
     expect(activity).toContain('registerPlugin(LocalSpeechPlugin.class)');
+    expect(readProjectFile('android/app/src/main/AndroidManifest.xml')).toContain('android.permission.VIBRATE');
   });
 
   it('ships restrictive static-host headers and immutable asset caching', () => {
     const headers = readProjectFile('public/_headers');
     expect(headers).toContain("Content-Security-Policy: default-src 'self'");
     expect(headers).toContain('Permissions-Policy: microphone=(self)');
-    expect(headers).toContain('Cache-Control: public, max-age=31536000, immutable');
+    expect(headers).toContain('/assets/*\n  Cache-Control: public, max-age=31536000, immutable');
+    expect(headers).toContain('/download/*\n  Cache-Control: no-cache, must-revalidate');
     expect(headers).toContain('Content-Type: application/manifest+json; charset=utf-8');
     expect(headers).toContain('/sw.js\n  Cache-Control: no-cache, must-revalidate');
     const swa = readProjectFile('public/staticwebapp.config.json');
@@ -54,6 +59,7 @@ describe('release regression contracts', () => {
     expect(swa).toContain('".sha256": "text/plain"');
     expect(swa).toContain('max-age=31536000, immutable');
     expect(swa).toContain('"route": "/download/*"');
+    expect(swa).toContain('"Cache-Control": "no-cache, must-revalidate"');
     expect(swa).toContain('wasm,apk,sha256');
   });
 

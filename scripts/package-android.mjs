@@ -27,7 +27,7 @@ await mkdir(resolve(root, 'public'), { recursive: true });
 await rename(publishedDownload, heldDownload);
 try {
   await run('npm', ['run', 'cap:sync']);
-  await run('./gradlew', ['--no-daemon', 'clean', 'test', 'assembleDebug'], { cwd: resolve(root, 'android'), env: androidEnvironment });
+  await run('./gradlew', ['--no-daemon', 'clean', 'test', 'lint', 'assembleDebug'], { cwd: resolve(root, 'android'), env: androidEnvironment });
 } finally {
   if (await exists(heldDownload)) await rename(heldDownload, publishedDownload);
 }

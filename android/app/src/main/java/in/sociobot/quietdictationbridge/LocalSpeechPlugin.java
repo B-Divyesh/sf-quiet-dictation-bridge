@@ -9,6 +9,8 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 
 
+import androidx.annotation.RequiresApi;
+
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
@@ -29,6 +31,8 @@ import com.getcapacitor.annotation.Permission;
 )
 public class LocalSpeechPlugin extends Plugin implements RecognitionListener {
     private SpeechRecognizer recognizer;
+    private final HoldSession holdSession = new HoldSession();
+    private long permissionHoldToken = HoldSession.NONE;
 
     @PluginMethod
     public void available(PluginCall call) {
@@ -40,26 +44,53 @@ public class LocalSpeechPlugin extends Plugin implements RecognitionListener {
 
     @PluginMethod
     public void start(PluginCall call) {
+        long holdToken = holdSession.begin();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            holdSession.release(holdToken);
+            call.reject("Android on-device speech requires Android 12 or newer. Install a language pack in Speech Services, then retry.");
+            return;
+        }
         if (!hasOnDeviceRecognizer()) {
+            holdSession.release(holdToken);
             call.reject("Android on-device speech is not installed. Use Android 12 or newer and install a language pack in Speech Services, then retry.");
             return;
         }
         if (getPermissionState("microphone") != PermissionState.GRANTED) {
+            permissionHoldToken = holdToken;
             requestPermissionForAlias("microphone", call, "startAfterPermission");
             return;
         }
-        begin(call);
+        begin(call, holdToken);
     }
 
     public void startAfterPermission(PluginCall call) {
+        long holdToken = permissionHoldToken;
+        permissionHoldToken = HoldSession.NONE;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            holdSession.release(holdToken);
+            call.reject("Android on-device speech requires Android 12 or newer. Install a language pack in Speech Services, then retry.");
+            return;
+        }
         if (getPermissionState("microphone") != PermissionState.GRANTED) {
+            holdSession.release(holdToken);
             call.reject("Microphone permission was not allowed. Enable it in Android app settings, then retry.");
             return;
         }
-        begin(call);
+        // Permission can be granted after the user has released or cancelled
+        // the hold. A permission result must never itself authorise recording.
+        if (!holdSession.isActive(holdToken)) {
+            call.resolve();
+            return;
+        }
+        begin(call, holdToken);
     }
 
-    private void begin(PluginCall call) {
+    @RequiresApi(Build.VERSION_CODES.S)
+    private void begin(PluginCall call, long holdToken) {
+        if (!holdSession.isActive(holdToken)) {
+            call.resolve();
+            return;
+        }
         stopRecognizer();
         // createOnDeviceSpeechRecognizer is the force-local API; unlike a
         // general recognizer plus a preference, it cannot quietly use cloud STT.
@@ -78,6 +109,8 @@ public class LocalSpeechPlugin extends Plugin implements RecognitionListener {
 
     @PluginMethod
     public void stop(PluginCall call) {
+        holdSession.release();
+        permissionHoldToken = HoldSession.NONE;
         if (recognizer != null) recognizer.stopListening();
         call.resolve();
     }
@@ -103,8 +136,13 @@ public class LocalSpeechPlugin extends Plugin implements RecognitionListener {
     }
 
     private boolean hasOnDeviceRecognizer() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-            && SpeechRecognizer.isOnDeviceRecognitionAvailable(getContext());
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false;
+        return hasOnDeviceRecognizerApi31();
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private boolean hasOnDeviceRecognizerApi31() {
+        return SpeechRecognizer.isOnDeviceRecognitionAvailable(getContext());
     }
 
     @Override public void onReadyForSpeech(Bundle params) { }

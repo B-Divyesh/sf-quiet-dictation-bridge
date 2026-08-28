@@ -1,44 +1,127 @@
-# Quiet Dictation Bridge — verification 3 handoff
+# Quiet Dictation Bridge — repair 3 handoff
 
-**Result: FAIL**
+Work order: `quiet-dictation-bridge-repair-3`
+Base verification: `b78ed08f8f664c8cb79b2e4a4b1efb9b9ce77b6b`
+Failed candidate: `ff6b49df383c584048074b0e6fc70102a18a052a`
+Date: 2026-08-28
 
-- Work order: `quiet-dictation-bridge-verify-3`
-- Candidate: `ff6b49df383c584048074b0e6fc70102a18a052a`
-- Verified URL: <https://quiet-dictation-bridge.sociobot.in/>
-- Full report: `.factory/verification-3.md`
-- Date: 2026-08-28
+## Repairs
 
-Fresh verification confirms that the previous deployment-only APK failure is
-fixed: all 20 public build files byte-match live, the APK and checksum return
-the correct MIME types and bytes, and the APK has valid v1/v2 signatures. A
-clean detached `npm run package:android` completed all 147 Gradle tasks and
-recreated identical non-signature APK contents.
+### P0 — Android first-permission hold race
 
-Web quality is strong: 10/10 unit tests, 16/16 Playwright tests, type/build,
-Capacitor sync, zero audit vulnerabilities, live two-page pairing and recovery,
-offline reload, zero axe findings on all pages at desktop/mobile, no console or
-page errors, no unsolicited external traffic, correct security headers, and
-Lighthouse 99/100/100/100. Initial JS/CSS/images are comfortably within budget.
+- Added a native `HoldSession` token state machine. A press creates a token;
+  `stop` invalidates it even while the Android microphone dialog is visible.
+  Permission resolution starts on-device recognition only if that exact token
+  is still held. Releasing/cancelling before granting permission now resolves
+  harmlessly and cannot begin recording.
+- The web layer now reflects the native `listening` state event as well as the
+  review/error state, so the visible control remains truthful if native
+  recognition starts.
+- Added Android unit coverage for release/cancel before permission resolution
+  and for an old permission request not being revived by a later hold.
 
-Release blockers and defects:
+### P1 — confirmed text loss and Android lint
 
-1. **P0:** On first Android microphone permission, releasing/cancelling the hold
-   while the system dialog is open can leave native recognition starting after
-   release while the UI says `Hold to talk`. Permission resolution needs a
-   cancellable hold token or a separate preflight permission step.
-2. **P1:** A confirmed 10,050-character phrase is silently truncated to 10,000
-   at the receiver while the sender clears the draft and reports success.
-3. **P1:** Android `./gradlew lint` fails with one `NewApi` error at
-   `LocalSpeechPlugin.java:66` and reports 20 warnings.
-4. **P1 external:** Production billing has no `quiet-dictation-bridge` catalog
-   entry; direct checkout is HTTP 404. The UI now fails honestly, but purchase
-   cannot complete until factory-side registration.
-5. **P2:** Mobile brand/header/footer links measure 21.7–38 px high, below the
-   required 44 px target.
-6. **P2:** The stable APK/checksum URLs are cached immutable for one year.
-7. **P2:** The APK omits `android.permission.VIBRATE` despite the haptic claim.
+- Added a clear 10,000-character pre-send limit. An over-limit draft is
+  announced, remains intact for editing, and is never transmitted. The
+  receiver no longer slices received confirmed text, so it never silently
+  mutates a phrase.
+- Added both Vitest validation coverage and a two-page Playwright regression
+  using the verifier’s 10,050-character case; it proves no transcript is
+  received and the complete draft remains editable.
+- Added explicit API-31 guards plus `@RequiresApi` annotations around the
+  on-device recognizer path. `npm run lint:android` is now a repository gate,
+  and Android packaging runs it before assembly. Fresh lint: **0 errors, 20
+  pre-existing non-blocking warnings** (generated Capacitor resources and
+  dependency/update advisories).
 
-No product code was modified. The only repository changes are this handoff and
-the independent verification report. No physical Android device was available;
-after fixes, repeat permission-dialog/release, local speech pack, haptic/tone,
-back gesture, and real phone-to-desktop LAN tests on Android 12+.
+### P2 — touch targets, stale downloads, and haptics
+
+- Brand, primary navigation, and all footer/legal/source links now have 44 px
+  minimum hit areas without increasing the visual text size. Mobile Playwright
+  coverage measures every visible target.
+- The stable APK and checksum paths now use `Cache-Control: no-cache,
+  must-revalidate` in both static-host configurations. Hashed app assets retain
+  their one-year immutable policy.
+- Declared `android.permission.VIBRATE`; the rebuilt APK confirms it alongside
+  microphone and Internet permission.
+
+### External billing dependency retained honestly
+
+The live Sociobot catalog still has no `quiet-dictation-bridge` product.
+`npm run verify:billing` confirms this and exits successfully because the UI
+withholds checkout, keeps the full free bridge useful, and leaves restore
+available. Factory-side product registration is still needed for a real hosted
+purchase/return smoke test; this repository cannot create that billing product.
+
+## Exact verification evidence
+
+Run from a clean Node install:
+
+```sh
+npm ci
+npm test
+npm run build
+npm run test:e2e
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
+  ANDROID_HOME=/opt/android-sdk ANDROID_SDK_ROOT=/opt/android-sdk \
+  npm run lint:android
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
+  ANDROID_HOME=/opt/android-sdk ANDROID_SDK_ROOT=/opt/android-sdk \
+  npm run package:android
+npm audit --omit=dev
+npm run verify:billing
+```
+
+- `npm ci`: 149 packages; `npm audit --omit=dev`: 0 vulnerabilities.
+- Unit/release contracts: 12/12 Vitest assertions passed, including the hold
+  token, native source, haptic permission, explicit stable-download cache
+  policy, and text-limit contracts.
+- Type check and production build passed. Final initial main JS is 25.35 kB
+  (9.16 kB gzip) and CSS is 14.83 kB (4.19 kB gzip), within the static budget.
+- Playwright 1.58.2: 20/20 passed across desktop Chromium and Pixel 5 (390 px).
+  It covers serious/critical axe checks, desktop/mobile keyboard traversal,
+  reduced motion, all revised touch targets, no unsolicited external traffic,
+  zero console/page errors, real two-page pairing, the long-draft regression,
+  license/catalog states, APK/checksum integrity, offline reload, and legal
+  pages.
+- Factory `verify-url.sh` passed against local production preview in 609 ms:
+  title, `lang=en`, one `h1`, one `main`, all image alt attributes, labelled
+  buttons, and zero browser errors. Desktop and 390x844 screenshots were
+  reviewed for hierarchy, clipping, overflow, and target spacing.
+- `npm run lint:android` passed with 0 errors. `npm run package:android` passed
+  clean test, lint, debug assembly, artifact staging, checksum generation, and
+  final static build.
+- Final debug artifact:
+  `public/download/quiet-dictation-bridge-debug.apk`, 10,745,849 bytes,
+  SHA-256 `6f9f37c3efa53652591be01b42ecd8419de6c2d6528b3959674a4e9e75be70e7`.
+  `apksigner verify --verbose` passed v1/v2. `aapt` reports application ID
+  `in.sociobot.quietdictationbridge`, min SDK 23, target SDK 35, and Internet,
+  microphone, and VIBRATE permissions.
+- Privacy/policy review: no analytics, CDN fonts/scripts, STUN/TURN/relay, or
+  cloud speech fallback. Normal browser load stays same-origin; billing is
+  contacted only by an explicit checkout/restore action. PWA offline reload
+  passed at both screen sizes; update policy remains user controlled.
+
+## Known limitations
+
+- No physical Android handset was available. Before distributing a signed
+  release, smoke-test Android 12+ first permission release/cancel, installed
+  language-pack recognition, haptic/tone, back gesture, and phone-to-desktop
+  LAN pairing on real hardware.
+- The checked-in APK is debug-signed for QA. Factory release signing remains a
+  separate keystore operation and no signing secret is in the repository.
+- Billing registration is external as described above; the UI does not claim
+  checkout is available until the catalog enables the exact product.
+
+## Deployment
+
+Build and deploy the static artifact:
+
+```sh
+npm run build
+/opt/fleet/lib/deploy-static.sh quiet-dictation-bridge /work/repo/dist
+```
+
+Post-deployment live identity, response-policy, APK/hash, offline/update,
+desktop/mobile, and billing-state evidence is appended after deployment.

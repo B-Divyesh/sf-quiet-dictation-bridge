@@ -5,6 +5,7 @@ import { addTranscript, clearTranscripts, getTranscripts, type Transcript } from
 import { isQuietKitUnlocked, setupLicense } from './license';
 import { LocalPeer } from './peer';
 import { chooseSpeechPath, type SpeechPath } from './speech';
+import { validateDraftForSend } from './transcript';
 
 const $ = <T extends Element>(selector: string) => document.querySelector<T>(selector);
 const show = (selector: string, visible: boolean) => { $(selector)?.toggleAttribute('hidden', !visible); };
@@ -165,7 +166,7 @@ function renderHistory() {
 }
 
 async function receiveTranscript(text: string) {
-  const clean = text.trim().slice(0, 10_000);
+  const clean = text.trim();
   if (!clean) return;
   const sessionField = $('#session-label') as HTMLInputElement | null;
   const item = await addTranscript({ text: clean, receivedAt: new Date().toISOString(), session: quietKit ? sessionField?.value.trim() || undefined : undefined });
@@ -223,7 +224,10 @@ async function setupNativeSpeech() {
     nativeListeners = await Promise.all([
       NativeLocalSpeech.addListener('partial', ({ text }) => { ($('#draft-text') as HTMLTextAreaElement).value = text.trim(); }),
       NativeLocalSpeech.addListener('result', ({ text }) => { ($('#draft-text') as HTMLTextAreaElement).value = text.trim(); }),
-      NativeLocalSpeech.addListener('state', ({ text }) => { if (text === 'review') setTalkState(false); }),
+      NativeLocalSpeech.addListener('state', ({ text }) => {
+        if (text === 'listening') setTalkState(true);
+        if (text === 'review') setTalkState(false);
+      }),
       NativeLocalSpeech.addListener('error', ({ text }) => { setTalkState(false); announce(text); }),
     ]);
   } catch (error) {
@@ -318,8 +322,9 @@ function confirmationFeedback() {
 
 function sendDraft() {
   const draft = $('#draft-text') as HTMLTextAreaElement;
-  const text = draft.value.trim();
-  if (!text) return announce('Dictate or type a phrase before sending.');
+  const validation = validateDraftForSend(draft.value);
+  if (!validation.ok) return announce(validation.message);
+  const { text } = validation;
   try {
     confirmationFeedback();
     peer?.sendTranscript(text);

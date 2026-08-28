@@ -46,12 +46,16 @@ npm run dev
 npm test
 npm run build
 npm run test:e2e
+npm run lint:android
 ```
 
 `npm run build` is the deployment build command. It creates `dist/`, with
 `dist/index.html` at its root. End-to-end tests use Playwright 1.58.2 and a
 production preview server. The factory worker image already contains the
 matching browser; elsewhere, run `npx playwright install chromium` once.
+`npm run lint:android` checks the native bridge; it requires JDK 21 and Android
+SDK platform 35. `npm run package:android` runs that lint gate, native tests,
+and debug assembly before it stages the downloadable APK and checksum.
 
 To exercise the full bridge manually:
 
@@ -63,6 +67,10 @@ To exercise the full bridge manually:
 4. Connect, then hold the talk control. If local speech is unavailable, type a
    test phrase in the review field. Confirm and send.
 5. On the receiver, choose **Copy** and paste in the intended desktop field.
+
+Each confirmed phrase is limited to 10,000 characters. The app refuses an
+over-limit draft before sending and leaves it in place for editing; it never
+silently trims confirmed words.
 
 Local host candidates can be restricted by corporate browser policy or guest
 Wi-Fi client isolation. The app reports a failed link and recommends retrying

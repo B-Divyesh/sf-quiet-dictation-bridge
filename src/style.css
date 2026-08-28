@@ -32,11 +32,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 .network-banner { position: relative; z-index: 20; padding: 7px 16px; text-align: center; color: var(--ember-ink); background: var(--warning); font-size: 14px; font-weight: 750; }
 .site-header { position: absolute; inset: 0 0 auto; z-index: 10; display: flex; align-items: center; justify-content: space-between; width: min(100% - 48px, 1200px); margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 0; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 800 14px/1.05 var(--display); text-transform: uppercase; letter-spacing: .08em; }
+.brand { display: flex; align-items: center; min-height: 44px; gap: 10px; text-decoration: none; font: 800 14px/1.05 var(--display); text-transform: uppercase; letter-spacing: .08em; }
 .brand img { border-radius: 9px; }
 .brand small { color: var(--fog); font-size: 11px; letter-spacing: .22em; }
 .site-header nav { display: flex; gap: 28px; font-size: 14px; }
-.site-header nav a { color: var(--fog); text-decoration: none; }
+.site-header nav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--fog); text-decoration: none; }
 .site-header nav a:hover { color: var(--paper); }
 
 .hero { isolation: isolate; position: relative; display: grid; min-height: min(820px, 100svh); align-items: end; overflow: hidden; border-bottom: 1px solid var(--line); }
@@ -159,6 +159,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 footer p { margin: 0; }
 footer p:first-child { display: flex; align-items: center; gap: 10px; color: var(--paper); font-weight: 800; }
 footer nav { display: flex; gap: 18px; }
+footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
 .toast { position: fixed; z-index: 50; right: 20px; bottom: 20px; display: flex; align-items: center; gap: 16px; padding: 14px 16px; color: var(--paper); background: var(--slate); border: 1px solid var(--signal); border-radius: 12px; box-shadow: 0 14px 44px #0008; }
 .toast button { min-height: 44px; color: var(--ember-ink); background: var(--signal); border: 0; border-radius: 8px; padding: 0 14px; font-weight: 800; cursor: pointer; }
 

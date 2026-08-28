@@ -134,6 +134,33 @@ test('two pages pair and send reviewed text locally', async ({ browser }) => {
   await context.close();
 });
 
+test('a too-long confirmed draft is kept for editing and is never sent truncated', async ({ browser }) => {
+  const context = await browser.newContext();
+  const desktop = await context.newPage();
+  const phone = await context.newPage();
+  await Promise.all([desktop.goto('/'), phone.goto('/')]);
+
+  await desktop.getByRole('button', { name: /This is my computer/ }).click();
+  await desktop.getByRole('button', { name: 'Create invitation' }).click();
+  await phone.getByRole('button', { name: /This is my phone/ }).click();
+  await phone.locator('#phone-invite').fill(await desktop.locator('#invite-code').inputValue());
+  await phone.getByRole('button', { name: 'Create private answer' }).click();
+  await desktop.locator('#answer-code').fill(await phone.locator('#phone-answer').inputValue());
+  await desktop.getByRole('button', { name: 'Connect phone' }).click();
+  await expect(phone.locator('#dictation-workspace')).toBeVisible({ timeout: 15_000 });
+
+  const tooLong = 'a'.repeat(10_000) + ' tail';
+  await phone.locator('#draft-text').evaluate((field, value) => {
+    (field as HTMLTextAreaElement).value = value as string;
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+  }, tooLong);
+  await phone.getByRole('button', { name: 'Confirm & send' }).click();
+  await expect(phone.locator('#bridge-alert')).toContainText('Shorten it to 10,000 characters or fewer');
+  await expect(phone.locator('#draft-text')).toHaveValue(tooLong);
+  await expect(desktop.locator('.transcript')).toHaveCount(0);
+  await context.close();
+});
+
 test('app shell reloads offline after first visit', async ({ page, context }) => {
   await page.goto('/');
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
@@ -150,5 +177,17 @@ test('privacy and terms are standalone accessible pages', async ({ page }) => {
     await expect(page.locator('h1')).toHaveCount(1);
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
+  }
+});
+
+test('phone navigation and legal links meet the 44px touch-target contract', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  for (const selector of ['.brand', '.site-header nav a:visible', 'footer nav a']) {
+    const targets = page.locator(selector);
+    for (let index = 0; index < await targets.count(); index++) {
+      const box = await targets.nth(index).boundingBox();
+      expect(box?.height, selector).toBeGreaterThanOrEqual(44);
+    }
   }
 });

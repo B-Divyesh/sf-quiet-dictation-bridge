@@ -25,7 +25,7 @@
     },
     {
       "route": "/download/*",
-      "headers": { "Cache-Control": "public, max-age=31536000, immutable" }
+      "headers": { "Cache-Control": "no-cache, must-revalidate" }
     },
     {
       "route": "/sw.js",
