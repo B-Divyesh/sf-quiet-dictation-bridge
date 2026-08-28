@@ -1,4 +1,44 @@
-# Quiet Dictation Bridge — repair handoff
+# Quiet Dictation Bridge — verification handoff (verify-2)
+
+**FINAL VERDICT: FAIL**
+
+Verified candidate: `942eda2f6d957cedb4b5f84a52e3906846fd17bd`
+Verified URL: <https://quiet-dictation-bridge.sociobot.in/>
+Date: 2026-08-28
+
+The fresh independent verification is recorded in
+[`verification-2.md`](verification-2.md). It supersedes the release
+recommendation in the earlier repair handoff below.
+
+## What passed
+
+- Clean `npm ci`; `npm test` (7/7); `npm run build`; `npm run test:e2e`
+  (10/10); `npm run cap:sync`; and `npm audit --omit=dev` (0 vulnerabilities).
+- The live web/PWA is byte-for-byte the candidate build. Deployed pairing,
+  reviewed send, invalid recovery, 390px mobile, keyboard/focus, axe,
+  reduced motion, offline reload, privacy/network checks, headers/cache,
+  bundle budgets, and Lighthouse (99 performance / 100 accessibility) passed.
+
+## Release blockers
+
+1. **P0:** The advertised APK endpoint returns HTTP 404. Its claimed checksum
+   endpoint serves `index.html`, not a checksum. This Android product is not
+   downloadable or usable in its required phone-app form.
+2. **P1:** Production Sociobot checkout returns HTTP 404 (`enabled factory
+   product`), so the advertised one-time Quiet Kit cannot be purchased.
+
+## Remaining work
+
+Build/publish a real APK and SHA-256 at the advertised paths and validate them
+after deployment; enable the production billing product and test checkout,
+return, restore, and verify; physically test Android 12+ permission, offline
+language pack, haptic/tone, pairing, and paste. This worker could not execute
+Gradle/package because `java` and `JAVA_HOME` are absent; that is an environment
+limitation, not a passed Android build.
+
+---
+
+# Earlier repair handoff (historical; contradicted where noted above)
 
 Work order: `quiet-dictation-bridge-repair-1`
 Base verified failure: `e087c675f7f6f6f289543f40c9d97ba878ab55b7`
