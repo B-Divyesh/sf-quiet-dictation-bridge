@@ -18,7 +18,7 @@
       <h2>What stays on your device</h2>
       <p>Received transcripts are stored in your computer browser’s IndexedDB. License tokens and their last verification result are stored in localStorage. Pairing codes are kept only in page memory and disappear when you reload. You can export transcripts as JSON or clear them at any time.</p>
       <h2>Speech recognition</h2>
-      <p>The microphone control is enabled only when the browser exposes an on-device recognition mode. Quiet Bridge requests that mode and does not deliberately fall back to cloud transcription. Your browser or operating system supplies the speech engine and its installed language pack, so review its privacy settings as well. You can always use typed text to test the bridge.</p>
+      <p>In the installed Android app, Quiet Bridge uses Android 12+’s native on-device recognizer and asks for a locally installed language pack. In a browser, the microphone control is enabled only when the browser exposes an on-device recognition mode. Quiet Bridge does not deliberately fall back to cloud transcription. Your browser or operating system supplies the speech engine and its installed language pack, so review its privacy settings as well. You can always use typed text to test the bridge.</p>
       <h2>What crosses the network</h2>
       <p>Pairing uses WebRTC without configured STUN, TURN, or application relay servers. The invitation and answer contain short-lived local connection metadata and are exchanged by you. Confirmed text travels over the resulting DTLS-encrypted peer connection. Only the device you pair can receive it.</p>
       <h2>Licenses and checkout</h2>

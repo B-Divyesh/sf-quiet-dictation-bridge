@@ -1,4 +1,4 @@
-const VERSION = 'quiet-bridge-v1';
+const VERSION = 'quiet-bridge-v2';
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
 const PRECACHE = [

@@ -16,6 +16,16 @@ test('home is accessible and responsive', async ({ page }, testInfo) => {
   }
 });
 
+test('production purchase link uses the live billing host and keyboard starts the bridge', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#buy-link')).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/quiet-dictation-bridge/checkout');
+  await expect(page.locator('#download-apk')).toHaveAttribute('href', '/download/quiet-dictation-bridge-debug.apk');
+  await expect(page.locator('#apk-checksum')).toHaveAttribute('href', /quiet-dictation-bridge-debug\.apk\.sha256$/);
+  await page.getByRole('button', { name: /This is my computer/ }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Invite your phone' })).toBeVisible();
+});
+
 test('two pages pair and send reviewed text locally', async ({ browser }) => {
   const context = await browser.newContext();
   const desktop = await context.newPage();

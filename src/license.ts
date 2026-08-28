@@ -1,5 +1,7 @@
+import { billingApiBase } from './billing';
+
 const SLUG = 'quiet-dictation-bridge';
-const API_BASE = import.meta.env.VITE_BILLING_API_BASE || 'https://pilot-api.sociobot.in';
+const API_BASE = billingApiBase(import.meta.env.VITE_BILLING_API_BASE);
 const TOKEN_KEY = `sb_license:${SLUG}`;
 const VERDICT_KEY = `sb_license_verdict:${SLUG}`;
 const DAY = 86_400_000;

@@ -1,8 +1,10 @@
 import './style.css';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { transcriptFilename } from './core';
 import { addTranscript, clearTranscripts, getTranscripts, type Transcript } from './db';
 import { isQuietKitUnlocked, setupLicense } from './license';
 import { LocalPeer } from './peer';
+import { chooseSpeechPath, type SpeechPath } from './speech';
 
 const $ = <T extends Element>(selector: string) => document.querySelector<T>(selector);
 const show = (selector: string, visible: boolean) => { $(selector)?.toggleAttribute('hidden', !visible); };
@@ -186,16 +188,67 @@ type RecognitionLike = EventTarget & {
   onend: (() => void) | null;
 };
 type RecognitionConstructor = new () => RecognitionLike;
+type ListenerHandle = { remove: () => Promise<void> };
+type NativeSpeech = {
+  available(): Promise<{ available: boolean; permissionGranted: boolean }>;
+  start(options: { language: string }): Promise<void>;
+  stop(): Promise<void>;
+  addListener(eventName: 'partial' | 'result' | 'error' | 'state', listenerFunc: (event: { text: string }) => void): Promise<ListenerHandle>;
+};
+
+const NativeLocalSpeech = registerPlugin<NativeSpeech>('LocalSpeech');
 
 let recognition: RecognitionLike | null = null;
 let listening = false;
+let speechPath: SpeechPath = 'unavailable';
+let nativeListeners: ListenerHandle[] = [];
+
+function setTalkState(active: boolean) {
+  listening = active;
+  $('#talk-button')?.classList.toggle('is-listening', active);
+  const label = $('#talk-button')?.querySelector('strong');
+  if (label) label.textContent = active ? 'Listening' : 'Hold to talk';
+}
+
+async function setupNativeSpeech() {
+  const talk = $('#talk-button') as HTMLButtonElement;
+  const support = $('#speech-support');
+  try {
+    const status = await NativeLocalSpeech.available();
+    if (!status.available) throw new Error('Offline speech recognition is not installed. Install a language pack in Android Speech Services, then retry.');
+    talk.disabled = false;
+    if (support) support.textContent = status.permissionGranted
+      ? 'Android offline recognition is ready. Your draft stays on this phone until you confirm.'
+      : 'Android will ask for microphone permission when you hold to talk. Recognition is requested on-device only.';
+    nativeListeners = await Promise.all([
+      NativeLocalSpeech.addListener('partial', ({ text }) => { ($('#draft-text') as HTMLTextAreaElement).value = text.trim(); }),
+      NativeLocalSpeech.addListener('result', ({ text }) => { ($('#draft-text') as HTMLTextAreaElement).value = text.trim(); }),
+      NativeLocalSpeech.addListener('state', ({ text }) => { if (text === 'review') setTalkState(false); }),
+      NativeLocalSpeech.addListener('error', ({ text }) => { setTalkState(false); announce(text); }),
+    ]);
+  } catch (error) {
+    speechPath = 'unavailable';
+    talk.disabled = true;
+    if (support) support.textContent = error instanceof Error ? `${error.message} You can type below to test the bridge.` : 'Android offline speech is unavailable. You can type below to test the bridge.';
+  }
+}
 
 function setupSpeechRecognition() {
   const win = window as unknown as { SpeechRecognition?: RecognitionConstructor; webkitSpeechRecognition?: RecognitionConstructor };
   const Constructor = win.SpeechRecognition || win.webkitSpeechRecognition;
   const talk = $('#talk-button') as HTMLButtonElement;
   const support = $('#speech-support');
-  if (!Constructor || !('processLocally' in Constructor.prototype)) {
+  for (const listener of nativeListeners) void listener.remove();
+  nativeListeners = [];
+  recognition = null;
+  speechPath = chooseSpeechPath(Capacitor.getPlatform() === 'android' && Capacitor.isNativePlatform(), Boolean(Constructor && 'processLocally' in Constructor.prototype));
+  if (speechPath === 'android-offline') {
+    talk.disabled = true;
+    if (support) support.textContent = 'Checking Android offline recognition…';
+    void setupNativeSpeech();
+    return;
+  }
+  if (speechPath === 'unavailable' || !Constructor) {
     talk.disabled = true;
     if (support) support.textContent = 'Local speech recognition is unavailable here. Install an offline language pack in Chrome/Android, or type below to test the bridge. No cloud fallback is used.';
     return;
@@ -221,23 +274,27 @@ function setupSpeechRecognition() {
 }
 
 function startListening() {
-  if (!recognition || listening) return;
+  if (listening || speechPath === 'unavailable') return;
   clearAlert();
+  if (speechPath === 'android-offline') {
+    setTalkState(true);
+    void NativeLocalSpeech.start({ language: navigator.language || 'en-US' }).catch((error: unknown) => {
+      setTalkState(false);
+      announce(error instanceof Error ? error.message : 'Android offline speech could not start. You can type the phrase below.');
+    });
+    return;
+  }
+  if (!recognition) return;
   try {
     recognition.start();
-    listening = true;
-    $('#talk-button')?.classList.add('is-listening');
-    const button = $('#talk-button');
-    if (button) button.querySelector('strong')!.textContent = 'Listening';
+    setTalkState(true);
   } catch { /* Repeated starts are ignored by browser implementations. */ }
 }
 
 function stopListening() {
-  if (listening) recognition?.stop();
-  listening = false;
-  $('#talk-button')?.classList.remove('is-listening');
-  const button = $('#talk-button');
-  if (button) button.querySelector('strong')!.textContent = 'Hold to talk';
+  if (speechPath === 'android-offline' && listening) void NativeLocalSpeech.stop().catch(() => { /* Error event provides an actionable message. */ });
+  else if (listening) recognition?.stop();
+  setTalkState(false);
 }
 
 function confirmationFeedback() {

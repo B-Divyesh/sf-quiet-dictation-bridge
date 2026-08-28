@@ -150,6 +150,11 @@ details { margin-top: 22px; }
 summary { min-height: 44px; display: flex; align-items: center; color: var(--fog); cursor: pointer; }
 .license-status { margin: 18px 0 0; color: var(--signal); font-weight: 700; }
 
+.apk-section { width: min(100% - 48px, 1100px); margin: 0 auto; padding: 72px 0 96px; border-top: 1px solid var(--line); }
+.apk-section h2 { margin: 0 0 12px; }
+.apk-section > p:not(.eyebrow):not(.apk-links) { max-width: 62ch; color: var(--fog); }
+.apk-links { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 28px 0 0; }
+
 footer { display: flex; align-items: center; justify-content: space-between; gap: 26px; width: min(100% - 48px, 1200px); margin: 0 auto; padding: 36px 0 max(36px, env(safe-area-inset-bottom)); color: var(--fog); border-top: 1px solid var(--line); font-size: 14px; }
 footer p { margin: 0; }
 footer p:first-child { display: flex; align-items: center; gap: 10px; color: var(--paper); font-weight: 800; }
@@ -168,11 +173,12 @@ footer nav { display: flex; gap: 18px; }
   h1 { font-size: clamp(3.3rem, 17vw, 5.1rem); }
   .hero-lede { font-size: 17px; }
   .scene-caption { display: none; }
-  .trust-strip, .bridge-section, .how-section, .pricing-section, footer { width: calc(100% - 32px); }
+  .trust-strip, .bridge-section, .how-section, .pricing-section, .apk-section, footer { width: calc(100% - 32px); }
   .trust-strip { grid-template-columns: 1fr; padding: 12px 0; }
   .trust-strip p, .trust-strip p:first-child { padding: 16px 0; border-right: 0; border-bottom: 1px solid var(--line); }
   .trust-strip p:last-child { border-bottom: 0; }
   .bridge-section, .how-section, .pricing-section { padding: 78px 0; }
+  .apk-section { padding: 58px 0 78px; }
   .role-switch, .steps, .pricing-section { grid-template-columns: 1fr; }
   .device-panel { padding: 22px 18px; border-radius: 16px; }
   .panel-topline { align-items: start; }

@@ -12,8 +12,10 @@ Live site: <https://quiet-dictation-bridge.sociobot.in>
 
 - Creates an explicit WebRTC connection directly between phone and computer.
   No STUN, TURN, application relay, account, or analytics service is used.
-- Requests on-device Web Speech recognition only when the browser exposes its
-  local-processing mode. It does not silently fall back to cloud transcription.
+- In the installed Android app, uses Android 12+’s native on-device speech
+  recognizer and an installed Android Speech Services language pack. In a
+  browser, it uses Web Speech only when the browser exposes local-processing
+  mode. Neither path silently falls back to cloud transcription.
 - Keeps the microphone off until the hold control is pressed and always shows
   a visible listening state.
 - Lets the speaker edit the draft, then gives a local confirmation tone and
@@ -22,7 +24,8 @@ Live site: <https://quiet-dictation-bridge.sociobot.in>
   export controls. The browser sandbox requires the user to paste into the
   destination app with Ctrl/Cmd + V.
 - Works offline after the first successful load, including the legal pages.
-- Includes a Capacitor Android project with product-specific icon/splash assets.
+- Includes a Capacitor Android app with product-specific icon/splash assets,
+  runtime microphone permission, and a native local-speech bridge.
 
 The core bridge is free. The optional $9 one-time Quiet Kit license adds
 automatic clipboard copy where the browser permits it, session labels in
@@ -63,10 +66,9 @@ Wi-Fi client isolation. The app reports a failed link and recommends retrying
 on the same unrestricted LAN; it never routes around that policy through a
 cloud relay.
 
-## Android project
+## Android app
 
-The checked-in `android/` directory is a Capacitor project skeleton for the
-later APK work order. Its valid Java application ID is
+The checked-in `android/` directory is the buildable Android app. Its valid Java application ID is
 `in.sociobot.quietdictationbridge` (Android package IDs cannot contain the
 hyphens in the product slug).
 
@@ -75,15 +77,21 @@ npm run cap:sync
 cd android && ./gradlew assembleDebug
 ```
 
-The static-deploy worker is not expected to contain an Android SDK, so APK
-production and signing are intentionally deferred. Never commit a signing key.
+The debug APK is written to
+`android/app/build/outputs/apk/debug/app-debug.apk`; the release worker uploads
+it to the factory artifact location with a SHA-256. `npm run package:android`
+also stages the APK and checksum under `dist/download/` for static deployment.
+Never commit a signing key.
+On Android 12 or newer, install the language you use in Android Speech Services
+before dictating. The app deliberately reports an actionable setup message if a
+device has no on-device recognizer instead of sending audio to a cloud service.
 
 ## Configuration
 
-Staging defaults to `https://pilot-api.sociobot.in`. Set
-`VITE_BILLING_API_BASE=https://api.sociobot.in` in the factory release build.
-The endpoint is derived from the product slug; there is no hard-coded billing
-product ID.
+Production builds default to `https://api.sociobot.in`. Preview builds that use
+the registered test product must explicitly set
+`VITE_BILLING_API_BASE=https://pilot-api.sociobot.in`. The endpoint is derived
+from the product slug; there is no hard-coded billing product ID.
 
 ## Privacy and design
 
