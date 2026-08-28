@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Quiet Dictation Bridge mark">
+  <rect width="512" height="512" rx="108" fill="#080d12"/>
+  <circle cx="256" cy="256" r="158" fill="#0f171e" stroke="#273945" stroke-width="8"/>
+  <path d="M160 272c0 58 38 98 96 98s96-40 96-98" fill="none" stroke="#70d6a2" stroke-width="28" stroke-linecap="round"/>
+  <rect x="201" y="110" width="110" height="190" rx="55" fill="#f5a84b"/>
+  <path d="M256 370v55M202 425h108" fill="none" stroke="#f4f1e8" stroke-width="28" stroke-linecap="round"/>
+</svg>

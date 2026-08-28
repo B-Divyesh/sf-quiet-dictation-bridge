@@ -1,0 +1,12 @@
+{
+  "slug": "quiet-dictation-bridge",
+  "title": "Quiet Dictation Bridge",
+  "territory": "utilities",
+  "user": "People with motor, fatigue, or typing-access needs who work in open offices and need private push-to-talk dictation to their computer.",
+  "smallest_useful_product": "Android phone app plus desktop receiver: hold-to-talk on the phone, locally transcribe on the phone or receiver, then paste only after a confirmation beep/haptic.",
+  "success_measure": "In an open-office pilot, 80% of dictated entries are accepted without a privacy-related retry and median end-to-end insertion is under three seconds.",
+  "artifact_class": "android",
+  "monetization": "one-time",
+  "constraints": "Use explicit pairing and encrypted local transport; show unmistakable recording state; use redistributable on-device STT or let users supply a model.",
+  "state": "RESEARCHED"
+}
