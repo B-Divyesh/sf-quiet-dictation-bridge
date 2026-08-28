@@ -128,3 +128,35 @@ npm ci && npm test && npm run build
 After deployment, verify the live APK MIME/type/size/checksum, checksum MIME,
 checkout unavailable state, response policies, offline shell, Lighthouse,
 and byte identity against this build. Post-deploy results are appended below.
+
+## Post-deploy evidence
+
+Repair commit `f58cc74` was pushed to `origin/main` and deployed with the work
+order's static deployment script to
+<https://quiet-dictation-bridge.sociobot.in/> (Azure deployment
+`037b858d-6546-4357-83a3-4575ee4f5ba1`).
+
+- All 20 public files—including HTML, v3 service worker/manifest, hashed assets,
+  legal pages, art, icons, APK, and checksum—byte-match the deployed `dist/`.
+- Live APK: HTTP 200, `application/vnd.android.package-archive`, 10,745,000
+  bytes, immutable caching, and the SHA-256 recorded above. The live sidecar is
+  HTTP 200 `text/plain`, 99 bytes, and matches both the APK and local sidecar.
+- Factory URL verification passed in 932 ms with no page/console errors and the
+  expected title, language, one `h1`, `main`, alt text, and button labels.
+- Fresh live desktop and 390x844 Chromium checks found no console/page errors,
+  initial external requests, or horizontal overflow. Keyboard Tab focused
+  “Skip to main content”; phone role controls measured 542x120 and 358x120 CSS
+  px. Checkout activation announced the prepared state without navigating, and
+  both viewports reloaded the app offline after service-worker installation.
+- Live axe scans of home, privacy, and terms on both viewports found zero
+  serious/critical violations.
+- Live policy checks confirm restrictive CSP, microphone-only
+  Permissions-Policy, `nosniff`, strict referrer policy, one-year immutable
+  hashed assets, no-cache service worker, and a correctly typed/revalidated
+  manifest. Live `sw.js` and installed start URL report v3.
+- Lighthouse 12.8.2 mobile: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; FCP 0.9 s, LCP 1.1 s, CLS 0, TBT 0 ms, Speed Index 0.9 s.
+- Production billing catalog mode is `live` with zero matching products. Direct
+  checkout remains the known factory-side 404; invalid-license verification is
+  healthy (`valid:false`, `reason:"invalid"`). The deployed client handles this
+  exact state as documented above.
