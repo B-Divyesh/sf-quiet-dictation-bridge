@@ -30,7 +30,7 @@ Base verified failure: `e087c675f7f6f6f289543f40c9d97ba878ab55b7`
 
 - Debug APK: `quiet-dictation-bridge-debug.apk`
 - Size: 10,769,539 bytes
-- SHA-256: `7d7ea254b884ac3b6dec6b40916783e10fa38bfca59684555118b3cdc4450c07`
+- SHA-256: `83c29e38a27c2811e884170c7ed0ba1b244fbc9ea93e0b10cc1be4cb198d95fd`
 - Reproduce/package: `npm run package:android` (requires Android SDK 35 and
   JDK 21); it stages `dist/download/quiet-dictation-bridge-debug.apk` and its
   standard SHA-256 sidecar for static deployment.

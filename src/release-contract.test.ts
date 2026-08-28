@@ -40,7 +40,7 @@ describe('release regression contracts', () => {
     const swa = readProjectFile('public/staticwebapp.config.json');
     expect(swa).toContain('Content-Security-Policy');
     expect(swa).toContain('Permissions-Policy');
-    expect(swa).toContain('application/manifest+json');
+    expect(swa).toContain('".webmanifest": "application/manifest+json"');
     expect(swa).toContain('max-age=31536000, immutable');
     expect(swa).toContain('"route": "/download/*"');
   });
