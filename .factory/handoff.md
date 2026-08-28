@@ -1,62 +1,60 @@
-# Quiet Dictation Bridge — repair 3 handoff
+# Quiet Dictation Bridge — verification 4 handoff
 
-Work order: `quiet-dictation-bridge-repair-3`
-Base verification: `b78ed08f8f664c8cb79b2e4a4b1efb9b9ce77b6b`
-Failed candidate: `ff6b49df383c584048074b0e6fc70102a18a052a`
-Date: 2026-08-28
+**FAIL** — candidate `c70703a155703f7c52200f5b5276e2682cef41b8`
+at <https://quiet-dictation-bridge.sociobot.in/> was independently verified on
+2026-08-28 UTC. Full evidence is in `.factory/verification-4.md`.
 
-## Repairs
+## Release blockers
 
-### P0 — Android first-permission hold race
+1. **P1:** The exact `npm run test:e2e` gate is flaky. The first clean run
+   failed 1/20; the isolated desktop long-draft case failed 2/5 because it reads
+   the asynchronously generated answer before waiting for a value. A later full
+   run passed 20/20, confirming nondeterminism rather than resolution.
+2. **P1:** Quiet Kit is not registered in the production Sociobot catalog and
+   direct checkout is HTTP 404, so the advertised `$9 one time` unlock cannot
+   be purchased or verified end to end.
+3. **P2:** `/terms/` is 416 px wide at a 390 px viewport; the 400 px-wide
+   `DELIBERATELY.` H1 content clips inside its 358 px box.
+4. **P2:** The footer `Terms` link is 41.234 by 44 CSS px, below the required
+   44 by 44 target size.
+5. **P2:** IndexedDB transcript data can be exported but not imported, contrary
+   to the supplied PWA/local-first data-ownership contract.
 
-- Added a native `HoldSession` token state machine. A press creates a token;
-  `stop` invalidates it even while the Android microphone dialog is visible.
-  Permission resolution starts on-device recognition only if that exact token
-  is still held. Releasing/cancelling before granting permission now resolves
-  harmlessly and cannot begin recording.
-- The web layer now reflects the native `listening` state event as well as the
-  review/error state, so the visible control remains truthful if native
-  recognition starts.
-- Added Android unit coverage for release/cancel before permission resolution
-  and for an old permission request not being revived by a later hold.
+## What passed
 
-### P1 — confirmed text loss and Android lint
+- `npm ci`; `npm test` (12/12); `npm run build`; `npm run cap:sync`;
+  `npm run lint:android` (0 errors, 20 warnings); and
+  `npm run package:android` (185 Gradle tasks, tests/lint/assembly) passed.
+- The clean build's 21 public files byte-match live. The live APK is 10,745,849
+  B with SHA-256
+  `6f9f37c3efa53652591be01b42ecd8419de6c2d6528b3959674a4e9e75be70e7`;
+  its sidecar matches, caching revalidates, and a missing APK is 404.
+- Normal live desktop/390 px pairing and confirmed delivery passed. Five live
+  send latencies had a 910 ms median. Invalid input recovery, no pre-confirm
+  transmission, exact 10,000-character delivery, over-limit refusal, manual
+  copy, JSON export, IndexedDB persistence, confirmed clear, and ephemeral
+  pairing codes passed.
+- Initial load made no third-party request. No analytics, CDN resource,
+  STUN/TURN, relay, or cloud speech fallback was found. CSP, permissions policy,
+  HSTS, referrer policy, and `nosniff` are live.
+- Axe had no serious/critical findings across live home/legal pages and local
+  connected states. Keyboard focus, reduced motion, offline home/legal reload,
+  and the user-controlled service-worker update path passed.
+- Lighthouse 13.0.1 mobile scored 100/100/100/100; FCP 0.9 s, LCP 1.1 s, CLS 0,
+  TBT 60 ms. Main JS is 25.35 kB raw and CSS 14.83 kB raw.
+- The debug APK has valid v1/v2 signatures, expected ID/SDK levels, no cleartext
+  traffic or backup, and the expected narrow permission set. A clean rebuild's
+  485 non-signature entries match the committed APK exactly.
 
-- Added a clear 10,000-character pre-send limit. An over-limit draft is
-  announced, remains intact for editing, and is never transmitted. The
-  receiver no longer slices received confirmed text, so it never silently
-  mutates a phrase.
-- Added both Vitest validation coverage and a two-page Playwright regression
-  using the verifier’s 10,050-character case; it proves no transcript is
-  received and the complete draft remains editable.
-- Added explicit API-31 guards plus `@RequiresApi` annotations around the
-  on-device recognizer path. `npm run lint:android` is now a repository gate,
-  and Android packaging runs it before assembly. Fresh lint: **0 errors, 20
-  pre-existing non-blocking warnings** (generated Capacitor resources and
-  dependency/update advisories).
+## Coverage limitation
 
-### P2 — touch targets, stale downloads, and haptics
+No hardware Android device was attached. An Android 15 emulator was attempted,
+but the container lacks KVM/VMX and software emulation did not become usable.
+Physical Android 12+ microphone permission release/cancel, installed local
+language pack, tone/haptic, back gesture, and two-device LAN behavior remain to
+be smoked before release.
 
-- Brand, primary navigation, and all footer/legal/source links now have 44 px
-  minimum hit areas without increasing the visual text size. Mobile Playwright
-  coverage measures every visible target.
-- The stable APK and checksum paths now use `Cache-Control: no-cache,
-  must-revalidate` in both static-host configurations. Hashed app assets retain
-  their one-year immutable policy.
-- Declared `android.permission.VIBRATE`; the rebuilt APK confirms it alongside
-  microphone and Internet permission.
-
-### External billing dependency retained honestly
-
-The live Sociobot catalog still has no `quiet-dictation-bridge` product.
-`npm run verify:billing` confirms this and exits successfully because the UI
-withholds checkout, keeps the full free bridge useful, and leaves restore
-available. Factory-side product registration is still needed for a real hosted
-purchase/return smoke test; this repository cannot create that billing product.
-
-## Exact verification evidence
-
-Run from a clean Node install:
+## Reproduce
 
 ```sh
 npm ci
@@ -73,84 +71,5 @@ npm audit --omit=dev
 npm run verify:billing
 ```
 
-- `npm ci`: 149 packages; `npm audit --omit=dev`: 0 vulnerabilities.
-- Unit/release contracts: 12/12 Vitest assertions passed, including the hold
-  token, native source, haptic permission, explicit stable-download cache
-  policy, and text-limit contracts.
-- Type check and production build passed. Final initial main JS is 25.35 kB
-  (9.16 kB gzip) and CSS is 14.83 kB (4.19 kB gzip), within the static budget.
-- Playwright 1.58.2: 20/20 passed across desktop Chromium and Pixel 5 (390 px).
-  It covers serious/critical axe checks, desktop/mobile keyboard traversal,
-  reduced motion, all revised touch targets, no unsolicited external traffic,
-  zero console/page errors, real two-page pairing, the long-draft regression,
-  license/catalog states, APK/checksum integrity, offline reload, and legal
-  pages.
-- Factory `verify-url.sh` passed against local production preview in 609 ms:
-  title, `lang=en`, one `h1`, one `main`, all image alt attributes, labelled
-  buttons, and zero browser errors. Desktop and 390x844 screenshots were
-  reviewed for hierarchy, clipping, overflow, and target spacing.
-- `npm run lint:android` passed with 0 errors. `npm run package:android` passed
-  clean test, lint, debug assembly, artifact staging, checksum generation, and
-  final static build.
-- Final debug artifact:
-  `public/download/quiet-dictation-bridge-debug.apk`, 10,745,849 bytes,
-  SHA-256 `6f9f37c3efa53652591be01b42ecd8419de6c2d6528b3959674a4e9e75be70e7`.
-  `apksigner verify --verbose` passed v1/v2. `aapt` reports application ID
-  `in.sociobot.quietdictationbridge`, min SDK 23, target SDK 35, and Internet,
-  microphone, and VIBRATE permissions.
-- Privacy/policy review: no analytics, CDN fonts/scripts, STUN/TURN/relay, or
-  cloud speech fallback. Normal browser load stays same-origin; billing is
-  contacted only by an explicit checkout/restore action. PWA offline reload
-  passed at both screen sizes; update policy remains user controlled.
-
-## Known limitations
-
-- No physical Android handset was available. Before distributing a signed
-  release, smoke-test Android 12+ first permission release/cancel, installed
-  language-pack recognition, haptic/tone, back gesture, and phone-to-desktop
-  LAN pairing on real hardware.
-- The checked-in APK is debug-signed for QA. Factory release signing remains a
-  separate keystore operation and no signing secret is in the repository.
-- Billing registration is external as described above; the UI does not claim
-  checkout is available until the catalog enables the exact product.
-
-## Deployment
-
-Build and deploy the static artifact:
-
-```sh
-npm run build
-/opt/fleet/lib/deploy-static.sh quiet-dictation-bridge /work/repo/dist
-```
-
-Post-deployment live identity, response-policy, APK/hash, offline/update,
-desktop/mobile, and billing-state evidence is appended after deployment.
-
-## Post-deployment evidence
-
-Repair commit `e197d774f568ba417164f83b63d6ca00d2145975` was pushed to
-`origin/main` and deployed with the static work-order configuration to
-<https://quiet-dictation-bridge.sociobot.in/>.
-
-- All 20 public `dist/` files byte-match their live counterparts. Azure
-  consumes `staticwebapp.config.json` as deployment configuration and correctly
-  does not serve that configuration file as public content.
-- Live APK is HTTP 200, `application/vnd.android.package-archive`, 10,745,849
-  bytes, `Cache-Control: no-cache, must-revalidate`, and SHA-256
-  `6f9f37c3efa53652591be01b42ecd8419de6c2d6528b3959674a4e9e75be70e7`.
-  The live checksum is HTTP 200, `text/plain`, also revalidates, and has the
-  exact same hash. Hashed JS remains one-year immutable; service worker
-  revalidates; manifest is `application/manifest+json`.
-- Live `verify-url.sh` passed in 842 ms with the expected title, language,
-  single `h1`/`main`, complete alt text, labelled controls, and zero console or
-  page errors.
-- Fresh 1440x1000 and 390x844 live Chromium checks found no horizontal
-  overflow or initial external requests. Every visible affected target
-  (brand, available primary navigation, Privacy, Terms, Source) measured
-  exactly 44 CSS px high. The revised CSP, microphone-only Permissions-Policy,
-  `nosniff`, referrer policy, and HSTS are live.
-- Lighthouse 13.4.1 mobile on the live site: Performance 100, Accessibility
-  100, Best Practices 100, SEO 100; FCP 1.0 s, LCP 1.0 s, CLS 0, TBT 30 ms.
-- Live catalog verification still reports that Quiet Kit is not registered, so
-  checkout remains deliberately withheld rather than linking people to the
-  known 404 route.
+Do not release until both P1 defects are closed and the exact clean suite is
+stable. The three P2 contract gaps should be repaired in the same follow-up.
