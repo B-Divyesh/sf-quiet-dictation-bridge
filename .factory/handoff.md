@@ -29,7 +29,7 @@ Base verified failure: `e087c675f7f6f6f289543f40c9d97ba878ab55b7`
 ## Artifact
 
 - Debug APK: `quiet-dictation-bridge-debug.apk`
-- Size: 10,769,539 bytes
+- Size: 10,792,064 bytes
 - SHA-256: `83c29e38a27c2811e884170c7ed0ba1b244fbc9ea93e0b10cc1be4cb198d95fd`
 - Reproduce/package: `npm run package:android` (requires Android SDK 35 and
   JDK 21); it stages `dist/download/quiet-dictation-bridge-debug.apk` and its
@@ -67,13 +67,33 @@ npm audit --omit=dev
 - Privacy: no analytics/CDN/STUN/TURN/relay was added. The native path invokes
   Android’s explicit on-device API; CSP permits only the product origin and
   Sociobot billing hosts for browser connections.
+- Live Lighthouse (mobile): Performance **100**, Accessibility **100**, Best
+  Practices **100**, SEO **100**; FCP 907 ms, LCP 1,057 ms, CLS 0, TBT 0.
 
 ## Deployment / remaining validation
 
-The static deployment and live response-policy/identity evidence will be
-recorded after this repair commit is pushed. No physical Android device is
-attached to this disposable worker, so microphone permission, installed
-language-pack recognition, haptic/tone, and LAN pairing must still be smoke
-tested on an Android 12+ handset before a signed release is distributed. The
-APK is an unsigned debug artifact; release signing remains a factory-keystore
-operation and no key is stored in this repository.
+Deployed to <https://quiet-dictation-bridge.sociobot.in/> from the static
+`dist/` package after commit `3806763`. Post-deploy verification returned HTTP
+200 in 769 ms with no page/console errors, title/lang/one `h1`/`main`, no
+missing image alt text, and no unlabeled buttons. The live mobile browser also
+renders the production checkout URL and APK link without console errors.
+
+Live response checks confirm the CSP and microphone-only Permissions-Policy on
+HTML, immutable `max-age=31536000` caching on hashed JS and the APK, no-cache
+revalidation on `sw.js`, and `application/manifest+json` with short
+revalidation on the manifest. Downloading the deployed APK produced the
+SHA-256 above, matching its linked sidecar.
+
+The client-side billing defect is repaired, but the factory-side production
+checkout endpoint currently returns HTTP 404 at
+`https://api.sociobot.in/api/v1/products/quiet-dictation-bridge/checkout`.
+An invalid-license verification smoke returns HTTP 200 with
+`{"valid":false,"reason":"invalid"}`. The production product must be
+registered in the Sociobot billing service before a paid checkout/return flow
+can be accepted; this repository has no authority to create billing products.
+
+No physical Android device is attached to this disposable worker, so microphone
+permission, installed-language-pack recognition, haptic/tone, and LAN pairing
+must still be smoke tested on an Android 12+ handset before a signed release is
+distributed. The APK is an unsigned debug artifact; release signing remains a
+factory-keystore operation and no key is stored in this repository.
