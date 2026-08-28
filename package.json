@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "cap:sync": "npm run build && cap sync android",
-    "package:android": "npm run cap:sync && cd android && ./gradlew --no-daemon assembleDebug && mkdir -p ../dist/download && cp app/build/outputs/apk/debug/app-debug.apk ../dist/download/quiet-dictation-bridge-debug.apk && cd ../dist/download && sha256sum quiet-dictation-bridge-debug.apk > quiet-dictation-bridge-debug.apk.sha256",
+    "package:android": "node scripts/package-android.mjs",
+    "verify:billing": "node scripts/verify-billing.mjs",
     "cap:open": "cap open android"
   },
   "dependencies": {

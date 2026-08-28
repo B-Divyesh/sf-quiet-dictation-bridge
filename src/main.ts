@@ -407,6 +407,7 @@ async function setupServiceWorker() {
 
 async function init() {
   bindEvents();
+  if (Capacitor.isNativePlatform()) show('.apk-section', false);
   setupNetworkState();
   historyItems = await getTranscripts().catch(() => []);
   renderHistory();

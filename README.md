@@ -32,6 +32,9 @@ automatic clipboard copy where the browser permits it, session labels in
 exports, and alternate confirmation tones. Accessibility, safety, and export
 are never paywalled. Checkout and verification use Sociobot’s hosted billing
 API; no payment provider code is embedded here.
+The purchase control confirms that the product is enabled in Sociobot's public
+catalog before navigating, so an incomplete factory registration never opens an
+unavailable checkout. Existing licenses can always be restored independently.
 
 ## Run and test
 
@@ -81,7 +84,9 @@ The debug APK is written to
 `android/app/build/outputs/apk/debug/app-debug.apk`; the release worker uploads
 it to the factory artifact location with a SHA-256. `npm run package:android`
 also stages the APK and checksum under `dist/download/` for static deployment.
-Never commit a signing key.
+The checked-in debug artifact under `public/download/` makes the work order's
+clean static build reproducibly include the Android download; packaging
+replaces it only after a successful native build. Never commit a signing key.
 On Android 12 or newer, install the language you use in Android Speech Services
 before dictating. The app deliberately reports an actionable setup message if a
 device has no on-device recognizer instead of sending audio to a cloud service.
@@ -91,7 +96,9 @@ device has no on-device recognizer instead of sending audio to a cloud service.
 Production builds default to `https://api.sociobot.in`. Preview builds that use
 the registered test product must explicitly set
 `VITE_BILLING_API_BASE=https://pilot-api.sociobot.in`. The endpoint is derived
-from the product slug; there is no hard-coded billing product ID.
+from the product slug; there is no hard-coded billing product ID. Run
+`npm run verify:billing` to check the public catalog and, when registered, the
+hosted checkout redirect.
 
 ## Privacy and design
 
