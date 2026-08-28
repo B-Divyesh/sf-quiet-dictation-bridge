@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#080d12" />
+    <meta name="description" content="Private, deliberate phone-to-desktop dictation over your local network." />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <title>Quiet Dictation Bridge — private phone-to-desktop dictation</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <div id="offline-banner" class="network-banner" role="status" hidden>Internet offline · local pairing can still work on the same Wi-Fi</div>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Quiet Dictation Bridge home">
+        <img src="/icon.svg" width="38" height="38" alt="" />
+        <span>Quiet Dictation<br /><small>Bridge</small></span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#bridge">Open bridge</a>
+        <a href="#how">How it works</a>
+        <a href="#pricing">One-time unlock</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <picture class="hero-picture">
+          <source media="(max-width: 720px)" srcset="/art/quiet-desk-768.webp" />
+          <img src="/art/quiet-desk.webp" width="1280" height="853" alt="A quiet office at dusk where a nearby phone creates a small pool of warm light beside a worker" fetchpriority="high" decoding="async" />
+        </picture>
+        <div class="hero-shade"></div>
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="live-dot"></span> Private by proximity</p>
+          <h1 id="hero-title">Speak softly.<br />Keep your flow.</h1>
+          <p class="hero-lede">Use your phone’s close microphone as a deliberate push-to-talk bridge to your computer. No account, no recording archive, no cloud relay.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#bridge">Set up the bridge <span aria-hidden="true">↓</span></a>
+            <a class="text-link" href="#privacy-note">See the privacy model</a>
+          </div>
+        </div>
+        <div class="scene-caption" aria-hidden="true"><span>01</span> Close mic / local path / confirmed send</div>
+      </section>
+
+      <section id="privacy-note" class="trust-strip" aria-label="Privacy summary">
+        <p><strong>Close mic</strong><span>Speak at phone distance, not across the room.</span></p>
+        <p><strong>Local link</strong><span>Peer-to-peer DTLS encryption. No relay server.</span></p>
+        <p><strong>Deliberate send</strong><span>Review first. Tone and haptic, then transmit.</span></p>
+      </section>
+
+      <section id="bridge" class="bridge-section" aria-labelledby="bridge-title">
+        <div class="section-heading">
+          <p class="eyebrow">Workbench</p>
+          <h2 id="bridge-title">Choose this device’s position.</h2>
+          <p>Open this page on both devices. Your computer creates an invitation; your phone returns the answer. Pairing codes stay between you.</p>
+        </div>
+
+        <div class="role-switch" role="group" aria-label="Choose device role">
+          <button class="role-button" id="choose-desktop" type="button">
+            <span class="role-icon" aria-hidden="true">▰</span><span><strong>This is my computer</strong><small>Receive confirmed text</small></span>
+          </button>
+          <button class="role-button" id="choose-phone" type="button">
+            <span class="role-icon" aria-hidden="true">▯</span><span><strong>This is my phone</strong><small>Hold to dictate</small></span>
+          </button>
+        </div>
+
+        <section id="desktop-panel" class="device-panel" aria-labelledby="desktop-title" hidden>
+          <div class="panel-topline"><p class="step-label">Computer receiver</p><button class="quiet-button change-role" type="button">Change role</button></div>
+          <h3 id="desktop-title">Invite your phone</h3>
+          <div class="status-line"><span id="desktop-status-dot" class="status-dot"></span><span id="desktop-status">Ready to create a private invitation</span></div>
+          <div id="desktop-setup">
+            <p class="explain">Both devices must be on the same local network. The code contains only short-lived connection details.</p>
+            <button id="create-invite" class="button button-primary" type="button">Create invitation</button>
+            <div id="invite-block" class="code-block" hidden>
+              <label for="invite-code">1. Send this invitation to your phone</label>
+              <textarea id="invite-code" rows="4" readonly spellcheck="false"></textarea>
+              <button class="button button-secondary copy-code" data-copy="invite-code" type="button">Copy invitation</button>
+              <label for="answer-code">2. Paste the answer from your phone</label>
+              <textarea id="answer-code" rows="4" spellcheck="false" autocomplete="off"></textarea>
+              <button id="accept-answer" class="button button-primary" type="button">Connect phone</button>
+            </div>
+          </div>
+          <div id="receiver-workspace" hidden>
+            <div class="receiver-head"><div><p class="step-label">Live inbox</p><h3>Confirmed dictation</h3></div><button id="export-history" class="quiet-button" type="button">Export JSON</button></div>
+            <label for="session-label">Session label <small class="paid-mark">Quiet Kit</small></label>
+            <input id="session-label" type="text" maxlength="40" placeholder="For example, Design review" disabled />
+            <label class="toggle-row" id="autocopy-row"><input id="auto-copy" type="checkbox" /><span><strong>Auto-copy new phrases</strong><small>Quiet Kit feature · manual copy stays free</small></span></label>
+            <ol id="transcript-list" class="transcript-list" aria-live="polite" aria-label="Received dictation"></ol>
+            <div id="receiver-empty" class="empty-state"><span aria-hidden="true">◎</span><strong>Waiting for your first phrase</strong><p>Hold the microphone on your phone, review, then send.</p></div>
+            <button id="clear-history" class="danger-button" type="button">Clear local history</button>
+          </div>
+        </section>
+
+        <section id="phone-panel" class="device-panel phone-panel" aria-labelledby="phone-title" hidden>
+          <div class="panel-topline"><p class="step-label">Phone microphone</p><button class="quiet-button change-role" type="button">Change role</button></div>
+          <h3 id="phone-title">Answer your computer</h3>
+          <div class="status-line"><span id="phone-status-dot" class="status-dot"></span><span id="phone-status">Waiting for an invitation</span></div>
+          <div id="phone-setup">
+            <label for="phone-invite">1. Paste the invitation from your computer</label>
+            <textarea id="phone-invite" rows="4" spellcheck="false" autocomplete="off"></textarea>
+            <button id="make-answer" class="button button-primary" type="button">Create private answer</button>
+            <div id="phone-answer-block" class="code-block" hidden>
+              <label for="phone-answer">2. Return this answer to your computer</label>
+              <textarea id="phone-answer" rows="4" readonly spellcheck="false"></textarea>
+              <button class="button button-secondary copy-code" data-copy="phone-answer" type="button">Copy answer</button>
+              <p class="microcopy">Leave this screen open while your computer connects.</p>
+            </div>
+          </div>
+          <div id="dictation-workspace" class="dictation-workspace" hidden>
+            <p id="speech-support" class="support-note" role="status"></p>
+            <label for="tone-choice">Confirmation tone <small class="paid-mark">two Quiet Kit choices</small></label>
+            <select id="tone-choice"><option value="soft">Soft tap</option><option value="warm" disabled>Warm chime</option><option value="clear" disabled>Clear bell</option></select>
+            <button id="talk-button" class="talk-button" type="button" aria-describedby="talk-help">
+              <span class="talk-rings" aria-hidden="true"></span><span class="mic-glyph" aria-hidden="true">●</span><strong>Hold to talk</strong><small>Release to review</small>
+            </button>
+            <p id="talk-help" class="microcopy">Keyboard: hold Space or Enter while this button is focused.</p>
+            <label for="draft-text">Review before sending</label>
+            <textarea id="draft-text" rows="4" placeholder="Your words appear here. You can also type to test the local bridge."></textarea>
+            <div class="send-row"><button id="discard-draft" class="button button-secondary" type="button">Discard</button><button id="send-draft" class="button button-primary" type="button">Confirm &amp; send</button></div>
+          </div>
+        </section>
+        <p id="bridge-alert" class="alert" role="alert" hidden></p>
+        <p class="local-note"><span aria-hidden="true">⌁</span> Pairing is temporary. Reloading either page closes the connection and clears the codes.</p>
+      </section>
+
+      <section id="how" class="how-section" aria-labelledby="how-title">
+        <div class="section-heading"><p class="eyebrow">Three deliberate beats</p><h2 id="how-title">Nothing listens until you press.</h2></div>
+        <ol class="steps">
+          <li><span>01</span><h3>Pair nearby</h3><p>Exchange one-time codes. WebRTC connects directly on your LAN with DTLS encryption.</p></li>
+          <li><span>02</span><h3>Hold, then review</h3><p>Your phone asks its installed speech service for on-device recognition. Edit before anything leaves.</p></li>
+          <li><span>03</span><h3>Hear confirmation</h3><p>A local tone and haptic mark the send. Copy on your computer and paste where you were working.</p></li>
+        </ol>
+        <aside class="boundary"><strong>Honest boundary</strong><p>A web page cannot type into other apps. The receiver copies text to your clipboard; you paste with Ctrl/Cmd + V. On-device speech availability depends on Chrome/Android and installed language packs. Quiet Bridge does not silently fall back to cloud transcription.</p></aside>
+      </section>
+
+      <section id="pricing" class="pricing-section" aria-labelledby="pricing-title">
+        <div><p class="eyebrow">Support the utility</p><h2 id="pricing-title">The bridge is useful for free.</h2><p>Pair, dictate, review, copy, export, and use accessibility controls without paying. Quiet Kit adds comforts for daily use.</p></div>
+        <div class="price-panel">
+          <p class="price"><span>$9</span> one time</p>
+          <ul><li>Automatic clipboard copy</li><li>Session labels in exports</li><li>Three confirmation tone choices</li><li>All future Quiet Kit updates</li></ul>
+          <a id="buy-link" class="button button-primary" href="#">Buy Quiet Kit</a>
+          <p class="microcopy">Final price and tax appear at checkout. Sociobot/Dodo is merchant of record.</p>
+          <details><summary>Have a license? Restore it</summary><form id="license-form"><label for="license-token">License token</label><input id="license-token" type="text" autocomplete="off" /><button class="button button-secondary" type="submit">Verify license</button></form></details>
+          <p id="license-status" class="license-status" role="status">Free edition</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p><img src="/icon.svg" width="30" height="30" alt="" /> Quiet Dictation Bridge</p>
+      <p>Local-first. No analytics. Original AI-generated scene.</p>
+      <nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-quiet-dictation-bridge">Source</a></nav>
+    </footer>
+
+    <div id="update-toast" class="toast" role="status" hidden><span>An update is ready.</span><button id="apply-update" type="button">Update now</button></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
