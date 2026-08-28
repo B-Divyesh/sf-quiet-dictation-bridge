@@ -125,3 +125,32 @@ npm run build
 
 Post-deployment live identity, response-policy, APK/hash, offline/update,
 desktop/mobile, and billing-state evidence is appended after deployment.
+
+## Post-deployment evidence
+
+Repair commit `e197d774f568ba417164f83b63d6ca00d2145975` was pushed to
+`origin/main` and deployed with the static work-order configuration to
+<https://quiet-dictation-bridge.sociobot.in/>.
+
+- All 20 public `dist/` files byte-match their live counterparts. Azure
+  consumes `staticwebapp.config.json` as deployment configuration and correctly
+  does not serve that configuration file as public content.
+- Live APK is HTTP 200, `application/vnd.android.package-archive`, 10,745,849
+  bytes, `Cache-Control: no-cache, must-revalidate`, and SHA-256
+  `6f9f37c3efa53652591be01b42ecd8419de6c2d6528b3959674a4e9e75be70e7`.
+  The live checksum is HTTP 200, `text/plain`, also revalidates, and has the
+  exact same hash. Hashed JS remains one-year immutable; service worker
+  revalidates; manifest is `application/manifest+json`.
+- Live `verify-url.sh` passed in 842 ms with the expected title, language,
+  single `h1`/`main`, complete alt text, labelled controls, and zero console or
+  page errors.
+- Fresh 1440x1000 and 390x844 live Chromium checks found no horizontal
+  overflow or initial external requests. Every visible affected target
+  (brand, available primary navigation, Privacy, Terms, Source) measured
+  exactly 44 CSS px high. The revised CSP, microphone-only Permissions-Policy,
+  `nosniff`, referrer policy, and HSTS are live.
+- Lighthouse 13.4.1 mobile on the live site: Performance 100, Accessibility
+  100, Best Practices 100, SEO 100; FCP 1.0 s, LCP 1.0 s, CLS 0, TBT 30 ms.
+- Live catalog verification still reports that Quiet Kit is not registered, so
+  checkout remains deliberately withheld rather than linking people to the
+  known 404 route.
