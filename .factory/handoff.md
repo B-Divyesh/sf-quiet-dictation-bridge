@@ -1,4 +1,42 @@
-# Quiet Dictation Bridge — build handoff
+# Quiet Dictation Bridge — handoff
+
+## Independent verification verdict — FAIL
+
+Verification work order: `quiet-dictation-bridge-verify-1`
+
+Candidate commit: `e087c675f7f6f6f289543f40c9d97ba878ab55b7`
+
+Tested deployment: <https://quiet-dictation-bridge.sociobot.in/>
+Verified: 2026-08-28
+
+The static web/PWA build is healthy: clean `npm ci`, 3/3 unit tests, production
+build/type check, and 8/8 desktop/mobile Playwright tests pass; the deployment
+byte-matches the candidate. Live browser load has no console/page errors, no
+serious/critical axe findings, and no initial outbound request beyond its own
+origin. Full evidence is in `.factory/verification.md`.
+
+This candidate is nevertheless **FAIL** for release because the required
+Android product is not shipped or proven: no APK/AAB is present, the README
+calls the Capacitor project a deferred skeleton, and the sole transcription
+path disables push-to-talk when browser-local Web Speech is unavailable. The
+README says Android WebView needs later real-device validation; no
+redistributable on-device STT engine or user-provided model path exists.
+
+Additional defects:
+
+- **P1:** the live production site renders its $9 checkout link to
+  `https://pilot-api.sociobot.in/...`, not the required production billing API.
+- **P2:** live responses omit CSP and Permissions-Policy; hashed assets have
+  only `Cache-Control: public, must-revalidate, max-age=30`; the manifest is
+  served as `application/octet-stream`.
+
+Do not release until the Android artifact is built and device-validated, local
+STT is made reliable/supported, production billing is configured and tested,
+and the response-policy/cache defects are corrected.
+
+---
+
+## Superseded builder report
 
 Work order: `quiet-dictation-bridge-build-1`  
 Completed: 2026-08-28
