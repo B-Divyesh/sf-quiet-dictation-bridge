@@ -144,8 +144,45 @@ npm run build
 /opt/fleet/lib/deploy-static.sh quiet-dictation-bridge /work/repo/dist
 ```
 
-Post-deployment URL, byte identity, response policy, and live behavior evidence
-will be appended after the repair commits are pushed and this build is deployed.
+## Post-deployment evidence
+
+Repair commits `ed4fd5310261d0b4258fd81dfc6e454976e07449` and
+`13b197c96a22db65047635b993e92131a3afdc74`, plus the initial handoff commit
+`1f9d258`, were pushed to `origin/main`. The exact work-order build
+(`npm ci && npm test && npm run build`) was deployed through the static helper
+with Azure deployment ID `0ab8d049-774c-438c-88bd-8428f6b84a76` to
+<https://quiet-dictation-bridge.sociobot.in/>.
+
+- All 22 publicly served files byte-match local `dist/`, including home,
+  privacy, terms, 404, hashed JS/CSS, art, manifest, service worker, APK, and
+  checksum. Deployment-only `_headers` and `staticwebapp.config.json` are not
+  public files.
+- Live `verify-url.sh` passed in 797 ms with the exact title, `lang=en`, one H1,
+  one main, complete alt handling, labelled buttons, and zero errors.
+- Home, demo, privacy, terms, and 404 were independently checked at 1440 px and
+  390 px: each has one H1/main, no horizontal overflow, zero serious/critical
+  axe findings, and zero console/page errors.
+- At live 390 px with a constructed 200% root font (`32px`), the document stays
+  390 px wide; H1 client/scroll width is 358 px and hero/pricing bounds end at
+  374 px. Normal mobile H1 client and scroll widths also both equal 358 px.
+- Tab first focuses the skip link. Reduced motion computes the recording-ring
+  animation to `0.00001s`.
+- A fresh live two-page WebRTC pair delivered `Live repair 5 identity
+  confirmed.`; choosing **Copy** returned that exact text. The complete flow
+  made no cross-origin request and logged no error.
+- A fresh service-worker context reloaded live offline with the app H1 and
+  offline banner intact.
+- An unknown route returns HTTP 404 and a body byte-equal to `404.html`.
+  Security headers include same-origin CSP, microphone-only Permissions Policy,
+  HSTS, `nosniff`, and strict-origin referrer policy. Hashed assets are immutable
+  for one year; a conditional request returned 304. `sw.js` and APK revalidate;
+  manifest and APK MIME types are correct.
+- Live APK length is 10,799,975 bytes and SHA-256 is
+  `e7dfbb7ef7858c1e983429d996c7ad23fceafe5d687ae998a5da8e3d2e1c6254`;
+  its sidecar, committed artifact, and `dist/` artifact agree.
+- Final live Lighthouse 13.0.1 mobile: Performance 100, Accessibility 100,
+  Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.1 s, CLS 0, TBT 0 ms, 35 KiB
+  transfer.
 
 ## Known limits
 
