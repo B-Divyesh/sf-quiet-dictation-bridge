@@ -177,11 +177,7 @@ async function receiveTranscript(text: string) {
   const item = await addTranscript({ text: clean, receivedAt: new Date().toISOString(), session: sessionField?.value.trim() || undefined });
   historyItems.unshift(item);
   renderHistory();
-  const autoCopy = $('#auto-copy') as HTMLInputElement | null;
-  if (autoCopy?.checked) {
-    try { await copyText(clean); setConnectionStatus('desktop', 'Phrase received and copied · paste with Ctrl/Cmd + V', 'connected'); }
-    catch { setConnectionStatus('desktop', 'Phrase received · choose Copy to use it', 'connected'); }
-  } else setConnectionStatus('desktop', 'Phrase received · choose Copy, then paste', 'connected');
+  setConnectionStatus('desktop', 'Phrase received · choose Copy, then paste', 'connected');
 }
 
 type RecognitionResultEvent = Event & { results: ArrayLike<{ 0: { transcript: string }; isFinal: boolean }> };

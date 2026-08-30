@@ -18,6 +18,7 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 /**
  * Android's system recognizer is used directly instead of Web Speech. The
@@ -63,6 +64,7 @@ public class LocalSpeechPlugin extends Plugin implements RecognitionListener {
         begin(call, holdToken);
     }
 
+    @PermissionCallback
     public void startAfterPermission(PluginCall call) {
         long holdToken = permissionHoldToken;
         permissionHoldToken = HoldSession.NONE;
@@ -71,14 +73,17 @@ public class LocalSpeechPlugin extends Plugin implements RecognitionListener {
             call.reject("Android on-device speech requires Android 12 or newer. Install a language pack in Speech Services, then retry.");
             return;
         }
-        if (getPermissionState("microphone") != PermissionState.GRANTED) {
-            holdSession.release(holdToken);
+        HoldSession.PermissionOutcome outcome = holdSession.afterPermission(
+            holdToken,
+            getPermissionState("microphone") == PermissionState.GRANTED
+        );
+        if (outcome == HoldSession.PermissionOutcome.DENIED) {
             call.reject("Microphone permission was not allowed. Enable it in Android app settings, then retry.");
             return;
         }
         // Permission can be granted after the user has released or cancelled
         // the hold. A permission result must never itself authorise recording.
-        if (!holdSession.isActive(holdToken)) {
+        if (outcome == HoldSession.PermissionOutcome.RELEASED) {
             call.resolve();
             return;
         }

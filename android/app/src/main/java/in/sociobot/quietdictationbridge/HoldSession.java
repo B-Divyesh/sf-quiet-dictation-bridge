@@ -7,6 +7,7 @@ package in.sociobot.quietdictationbridge;
  */
 final class HoldSession {
     static final long NONE = -1L;
+    enum PermissionOutcome { START, DENIED, RELEASED }
 
     private long nextToken = 0L;
     private long activeToken = NONE;
@@ -26,5 +27,13 @@ final class HoldSession {
 
     boolean isActive(long token) {
         return token != NONE && activeToken == token;
+    }
+
+    PermissionOutcome afterPermission(long token, boolean granted) {
+        if (!granted) {
+            release(token);
+            return PermissionOutcome.DENIED;
+        }
+        return isActive(token) ? PermissionOutcome.START : PermissionOutcome.RELEASED;
     }
 }

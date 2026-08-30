@@ -3,7 +3,7 @@
   "name": "Quiet Dictation Bridge",
   "short_name": "Quiet Bridge",
   "description": "Private push-to-talk dictation from your phone to your computer over a local encrypted link.",
-  "start_url": "/?v=4&source=pwa",
+  "start_url": "/?v=5&source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

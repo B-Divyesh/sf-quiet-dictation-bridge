@@ -29,7 +29,6 @@ banned marketing term appears.
 | Both devices must be on the same local network. | 9 |
 | The code contains only short-lived connection details. | 7 |
 | Import and export keep your local transcript history portable. | 9 |
-| Optional: manual copy is always available. | 6 |
 | Hold the microphone on your phone, review, then send. | 9 |
 | Leave this screen open while your computer connects. | 8 |
 | Keyboard: hold Space or Enter while this button is focused. | 10 |
@@ -51,10 +50,10 @@ banned marketing term appears.
 
 | Sentence | Words |
 | --- | ---: |
-| Every feature is included. | 4 |
-| The planned paid option is not registered, so this release includes every comfort feature without a license. | 17 |
+| No payment in this release. | 5 |
+| The planned paid option is not registered. | 7 |
+| Manual copy, session labels, and three tone choices need no license. | 11 |
 | No payment or license token is requested. | 7 |
-| Factory registration can restore the researched one-time offer in a later release. | 12 |
 | Android 12 or newer uses the device’s native on-device speech engine. | 11 |
 | Install your language pack before dictating; the app never switches to cloud transcription. | 13 |
 | An update is ready. | 4 |
@@ -69,5 +68,5 @@ banned marketing term appears.
 | Unsent recognized text | draft |
 | Sent text record | phrase |
 | Stored phrase collection | transcript history |
-| Optional automatic clipboard action | auto-copy |
+| User-initiated clipboard action | manual copy |
 | On-device Android package | Android app |

@@ -16,6 +16,8 @@ separate IndexedDB database and never mix with real transcript history.
 
 - Creates an explicit WebRTC connection directly between phone and computer.
   No STUN, TURN, application relay, account, or analytics service is used.
+  Pairing codes stay in page memory; reloading clears them and closes the
+  temporary connection.
 - In the installed Android app, uses Android 12+’s native on-device speech
   recognizer and an installed Android Speech Services language pack. In a
   browser, it uses Web Speech only when the browser exposes local-processing
@@ -25,17 +27,17 @@ separate IndexedDB database and never mix with real transcript history.
 - Lets the speaker edit the draft, then gives a local confirmation tone and
   haptic before sending.
 - Stores received phrases in IndexedDB, with manual copy, clear, and validated
-  JSON import and export controls. The browser sandbox requires the user to
-  paste into the destination app with Ctrl/Cmd + V.
+  JSON import and export controls. A phrase reaches the clipboard only when you
+  choose **Copy**. Paste it into the destination app with Ctrl/Cmd + V.
 - Works offline after the first successful load, including the legal pages.
 - Includes a Capacitor Android app with product-specific icon/splash assets,
   runtime microphone permission, and a native local-speech bridge.
 
 The researched plan calls for a one-time Quiet Kit purchase. That product is
 not registered in the factory billing catalog, so this release advertises no
-purchase. Automatic copy, session labels, and all confirmation tones are
-included without payment or a license. This keeps the shipped offer honest and
-the complete bridge useful while factory registration remains unavailable.
+purchase. Manual copy, session labels, and all confirmation tones are included
+without payment or a license. This keeps the shipped offer honest and the
+complete bridge useful while factory registration remains unavailable.
 
 ## Run and test
 
@@ -45,6 +47,7 @@ Requires Node.js 22+ and npm.
 npm install
 npm run dev
 npm test
+npm run test:android
 npm run build
 npm run test:e2e
 npm run lint:android
@@ -54,9 +57,10 @@ npm run lint:android
 `dist/index.html` at its root. End-to-end tests use Playwright 1.58.2 and a
 production preview server. The factory worker image already contains the
 matching browser; elsewhere, run `npx playwright install chromium` once.
-`npm run lint:android` checks the native bridge; it requires JDK 21 and Android
-SDK platform 35. `npm run package:android` runs that lint gate, native tests,
-and debug assembly before it stages the downloadable APK and checksum.
+`npm run test:android` syncs the web app and runs the native permission tests.
+It and `npm run lint:android` require JDK 21 and Android SDK platform 35.
+`npm run package:android` runs native tests, lint, and debug assembly before it
+stages the downloadable APK and checksum.
 
 To exercise the full bridge manually:
 

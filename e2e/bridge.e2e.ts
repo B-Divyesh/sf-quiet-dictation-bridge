@@ -1,6 +1,21 @@
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { createHash } from 'node:crypto';
+
+async function pairPages(desktop: Page, phone: Page) {
+  await desktop.getByRole('button', { name: /This is my computer/ }).click();
+  await desktop.getByRole('button', { name: 'Create invitation' }).click();
+  await expect(desktop.locator('#invite-code')).not.toHaveValue('', { timeout: 15_000 });
+  await phone.getByRole('button', { name: /This is my phone/ }).click();
+  await phone.locator('#phone-invite').fill(await desktop.locator('#invite-code').inputValue());
+  await phone.getByRole('button', { name: 'Create private answer' }).click();
+  await expect(phone.locator('#phone-answer')).not.toHaveValue('', { timeout: 15_000 });
+  await desktop.locator('#answer-code').fill(await phone.locator('#phone-answer').inputValue());
+  await desktop.getByRole('button', { name: 'Connect phone' }).click();
+  await expect(desktop.locator('#desktop-status')).toContainText('Phone connected', { timeout: 15_000 });
+  await expect(phone.locator('#phone-status')).toContainText('Computer connected', { timeout: 15_000 });
+}
 
 test('@claim:private-load home is accessible, responsive, and makes no third-party request', async ({ page }, testInfo) => {
   const errors: string[] = [];
@@ -43,8 +58,10 @@ test('@claim:free-release unregistered paid offer is not advertised and Android 
   await page.goto('/');
   await expect(page.getByText('$9 one time')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /checkout/i })).toHaveCount(0);
-  await expect(page.locator('#auto-copy')).toBeEnabled();
+  await expect(page.locator('#license-token')).toHaveCount(0);
+  await expect(page.locator('#auto-copy')).toHaveCount(0);
   await expect(page.locator('#session-label')).toBeEnabled();
+  await expect(page.locator('#tone-choice option')).toHaveCount(3);
   await expect(page.locator('#download-apk')).toHaveAttribute('href', '/download/quiet-dictation-bridge-debug.apk');
   await expect(page.locator('#apk-checksum')).toHaveAttribute('href', /quiet-dictation-bridge-debug\.apk\.sha256$/);
   const apk = await page.request.get('/download/quiet-dictation-bridge-debug.apk');
@@ -58,6 +75,20 @@ test('@claim:free-release unregistered paid offer is not advertised and Android 
   await page.getByRole('button', { name: /This is my computer/ }).focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Invite your phone' })).toBeVisible();
+});
+
+test('@claim:manual-copy received phrases copy only after a user chooses Copy', async ({ browser }) => {
+  const context = await browser.newContext();
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: 'http://127.0.0.1:4173' });
+  const page = await context.newPage();
+  await page.goto('/?demo=1');
+  const phrase = await page.locator('.transcript p').first().textContent();
+
+  await page.locator('.copy-transcript').first().click();
+
+  await expect(page.locator('.copy-transcript').first()).toHaveText('Copied');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(phrase);
+  await context.close();
 });
 
 test('@claim:local-delivery two pages pair and send reviewed text locally', async ({ browser }) => {
@@ -90,6 +121,110 @@ test('@claim:local-delivery two pages pair and send reviewed text locally', asyn
   await phone.getByRole('button', { name: 'Confirm & send' }).click();
   await expect(desktop.locator('.transcript').first()).toContainText('Quiet words arrive only after confirmation.');
   expect(externalRequests).toEqual([]);
+  await context.close();
+});
+
+test('@claim:press-to-listen recognition starts on hold and stops on release', async ({ browser }) => {
+  const context = await browser.newContext();
+  await context.addInitScript(() => {
+    const state = { starts: 0, stops: 0, aborts: 0 };
+    class LocalRecognition extends EventTarget {
+      lang = '';
+      continuous = false;
+      interimResults = false;
+      onresult = null;
+      onerror = null;
+      onend = null;
+      start() { state.starts += 1; }
+      stop() { state.stops += 1; }
+      abort() { state.aborts += 1; }
+    }
+    Object.defineProperty(LocalRecognition.prototype, 'processLocally', { configurable: true, value: true, writable: true });
+    Object.assign(window, { SpeechRecognition: LocalRecognition, __speechState: state });
+  });
+  const desktop = await context.newPage();
+  const phone = await context.newPage();
+  await Promise.all([desktop.goto('/'), phone.goto('/')]);
+  await pairPages(desktop, phone);
+  await expect(phone.locator('#talk-button')).toBeEnabled();
+  expect(await phone.evaluate(() => (window as unknown as { __speechState: { starts: number } }).__speechState.starts)).toBe(0);
+
+  await phone.locator('#talk-button').focus();
+  await phone.keyboard.down('Space');
+  await expect(phone.locator('#talk-button')).toHaveClass(/is-listening/);
+  expect(await phone.evaluate(() => (window as unknown as { __speechState: { starts: number } }).__speechState.starts)).toBe(1);
+  await phone.keyboard.up('Space');
+
+  await expect(phone.locator('#talk-button')).not.toHaveClass(/is-listening/);
+  expect(await phone.evaluate(() => (window as unknown as { __speechState: { stops: number } }).__speechState.stops)).toBe(1);
+  await context.close();
+});
+
+test('@claim:confirmation-feedback selected tone and haptic happen before transmission', async ({ browser }) => {
+  const context = await browser.newContext();
+  await context.addInitScript(() => {
+    const feedback: string[] = [];
+    class TestAudioContext {
+      currentTime = 0;
+      destination = {};
+      createOscillator() {
+        const oscillator = {
+          frequency: { value: 0 },
+          connect: (target: unknown) => target,
+          start: () => feedback.push(`tone:${oscillator.frequency.value}`),
+          stop: () => undefined,
+          addEventListener: () => undefined,
+        };
+        return oscillator;
+      }
+      createGain() {
+        return {
+          gain: { setValueAtTime: () => undefined, exponentialRampToValueAtTime: () => undefined },
+          connect: (target: unknown) => target,
+        };
+      }
+      close() { return Promise.resolve(); }
+    }
+    Object.defineProperty(window, 'AudioContext', { configurable: true, value: TestAudioContext });
+    Object.defineProperty(navigator, 'vibrate', { configurable: true, value: (duration: number) => { feedback.push(`haptic:${duration}`); return true; } });
+    const originalSend = RTCDataChannel.prototype.send;
+    RTCDataChannel.prototype.send = function send(data) {
+      feedback.push('send');
+      return originalSend.call(this, data);
+    };
+    Object.assign(window, { __feedback: feedback });
+  });
+  const desktop = await context.newPage();
+  const phone = await context.newPage();
+  await Promise.all([desktop.goto('/'), phone.goto('/')]);
+  await pairPages(desktop, phone);
+  await phone.locator('#tone-choice').selectOption('warm');
+  await phone.locator('#draft-text').fill('Feedback happens before this phrase leaves.');
+
+  await phone.getByRole('button', { name: 'Confirm & send' }).click();
+
+  await expect(desktop.locator('.transcript').first()).toContainText('Feedback happens before this phrase leaves.');
+  expect(await phone.evaluate(() => (window as unknown as { __feedback: string[] }).__feedback)).toEqual(['tone:660', 'haptic:35', 'send']);
+  await context.close();
+});
+
+test('@claim:pairing-memory reload clears pairing codes and the temporary connection', async ({ browser }) => {
+  const context = await browser.newContext();
+  const desktop = await context.newPage();
+  const phone = await context.newPage();
+  await Promise.all([desktop.goto('/'), phone.goto('/')]);
+  await pairPages(desktop, phone);
+
+  await Promise.all([desktop.reload(), phone.reload()]);
+  await desktop.getByRole('button', { name: /This is my computer/ }).click();
+  await phone.getByRole('button', { name: /This is my phone/ }).click();
+
+  await expect(desktop.locator('#invite-code')).toHaveValue('');
+  await expect(desktop.locator('#answer-code')).toHaveValue('');
+  await expect(phone.locator('#phone-invite')).toHaveValue('');
+  await expect(phone.locator('#phone-answer')).toHaveValue('');
+  await expect(desktop.locator('#desktop-status')).toHaveText('Ready to create a private invitation');
+  await expect(phone.locator('#phone-status')).toHaveText('Waiting for an invitation');
   await context.close();
 });
 
@@ -154,6 +289,19 @@ test('phone navigation and legal links meet the 44px touch-target contract', asy
       expect(box?.width, selector).toBeGreaterThanOrEqual(44);
       expect(box?.height, selector).toBeGreaterThanOrEqual(44);
     }
+  }
+});
+
+test('390px layout remains readable with the root text size increased to 200%', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.addStyleTag({ content: ':root { font-size: 200% !important; }' });
+
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  for (const selector of ['.hero-copy', 'h1', '.hero-actions', '.pricing-section', '.price-panel']) {
+    const box = await page.locator(selector).boundingBox();
+    expect(box?.x, selector).toBeGreaterThanOrEqual(0);
+    expect((box?.x || 0) + (box?.width || 0), selector).toBeLessThanOrEqual(390);
   }
 });
 

@@ -13,6 +13,9 @@ describe('release regression contracts', () => {
     expect(page).not.toContain('$9');
     expect(page).not.toContain('id="buy-link"');
     expect(page).not.toContain('id="license-token"');
+    expect(page).not.toContain('id="auto-copy"');
+    expect(page).not.toContain('Automatic clipboard copy');
+    expect(page).not.toContain('All future Quiet Kit updates');
     expect(page).toContain('<option value="warm">Warm chime</option>');
   });
 
@@ -30,8 +33,10 @@ describe('release regression contracts', () => {
     expect(plugin).toContain('RecognizerIntent.EXTRA_PREFER_OFFLINE, true');
     expect(plugin).toContain('Manifest.permission.RECORD_AUDIO');
     expect(plugin).toContain('requestPermissionForAlias');
+    expect(plugin).toContain('import com.getcapacitor.annotation.PermissionCallback;');
+    expect(plugin).toMatch(/@PermissionCallback\s+public void startAfterPermission\(PluginCall call\)/);
     expect(plugin).toContain('private final HoldSession holdSession');
-    expect(plugin).toContain('if (!holdSession.isActive(holdToken))');
+    expect(plugin).toContain('holdSession.afterPermission');
     expect(plugin).toContain('@RequiresApi(Build.VERSION_CODES.S)');
     expect(activity).toContain('registerPlugin(LocalSpeechPlugin.class)');
     expect(readProjectFile('android/app/src/main/AndroidManifest.xml')).toContain('android.permission.VIBRATE');
@@ -83,11 +88,11 @@ describe('release regression contracts', () => {
     const manifest = readProjectFile('public/manifest.webmanifest');
     const client = readProjectFile('src/main.ts');
 
-    expect(serviceWorker).toContain("const VERSION = 'quiet-bridge-v4'");
+    expect(serviceWorker).toContain("const VERSION = 'quiet-bridge-v5'");
     expect(serviceWorker).toContain('await self.clients.claim()');
     expect(serviceWorker).toContain("event.data?.type === 'SKIP_WAITING'");
     expect(client).toContain("postMessage({ type: 'SKIP_WAITING' })");
     expect(client).toContain("show('#update-toast', true)");
-    expect(manifest).toContain('"start_url": "/?v=4&source=pwa"');
+    expect(manifest).toContain('"start_url": "/?v=5&source=pwa"');
   });
 });

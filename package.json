@@ -8,6 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
+    "test:android": "npm run cap:sync && cd android && ./gradlew --no-daemon testDebugUnitTest",
+    "test:claim:on-device-speech": "npm test -- -t @claim:on-device-speech && npm run test:android -- --tests in.sociobot.quietdictationbridge.LocalSpeechPermissionTest --tests in.sociobot.quietdictationbridge.HoldSessionTest",
     "test:e2e": "npm run build && playwright test",
     "cap:sync": "npm run build && cap sync android",
     "lint:android": "cd android && ./gradlew --no-daemon lint",

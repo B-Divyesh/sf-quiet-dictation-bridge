@@ -43,17 +43,45 @@
   },
   {
     "id": "free-release",
-    "claim": "This release requests no payment or license and includes all comfort controls.",
-    "where": "included-features section, terms, and README",
+    "claim": "This release requests no payment or license and includes the Android download, session labels, and three tone choices.",
+    "where": "included-features section, Android section, terms, and README",
     "test": "npm run test:e2e -- --grep @claim:free-release",
-    "sandbox": "fresh browser context; assert no checkout offer and enabled comfort controls"
+    "sandbox": "fresh browser context; assert no checkout or license flow, three tone choices, session label, and a checksum-matched APK"
+  },
+  {
+    "id": "manual-copy",
+    "claim": "A received phrase is copied only after the user chooses Copy.",
+    "where": "receiver workspace, included-features section, boundary note, and README",
+    "test": "npm run test:e2e -- --grep @claim:manual-copy",
+    "sandbox": "fresh demo context with clipboard permission; choose Copy and compare the clipboard with the exact phrase"
+  },
+  {
+    "id": "press-to-listen",
+    "claim": "Recognition starts only while the hold control is pressed and stops when it is released.",
+    "where": "How it works section and README",
+    "test": "npm run test:e2e -- --grep @claim:press-to-listen",
+    "sandbox": "two paired pages with a local recognition fixture; assert no start before keyboard hold and a stop on release"
+  },
+  {
+    "id": "confirmation-feedback",
+    "claim": "Confirming a phrase requests the selected local tone and a short haptic before transmission.",
+    "where": "privacy summary, How it works section, and README",
+    "test": "npm run test:e2e -- --grep @claim:confirmation-feedback",
+    "sandbox": "two paired pages with instrumented AudioContext, vibration, and data channel; assert tone and haptic precede send"
+  },
+  {
+    "id": "pairing-memory",
+    "claim": "Pairing codes stay in page memory; reloading clears the codes and closes the temporary connection.",
+    "where": "bridge note, privacy policy, and README",
+    "test": "npm run test:e2e -- --grep @claim:pairing-memory",
+    "sandbox": "two paired pages; reload both; assert every code is empty and both roles return to their unpaired state"
   },
   {
     "id": "on-device-speech",
     "claim": "The Android bridge requests the native on-device recognizer and never configures cloud speech fallback.",
     "where": "landing Android section, privacy policy, and README",
-    "test": "npm test -- -t @claim:on-device-speech",
-    "sandbox": "static native-source contract fixture"
+    "test": "npm run test:claim:on-device-speech",
+    "sandbox": "native contract plus JVM tests that reflect the registered permission callback and exercise grant, denial, and release outcomes"
   },
   {
     "id": "phrase-limit",

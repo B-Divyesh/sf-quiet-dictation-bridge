@@ -7,8 +7,8 @@ const catalog = await catalogResponse.json();
 const product = catalog.data?.find((item) => item.slug === slug);
 
 if (!product) {
-  console.log('Quiet Kit is not registered; this release includes every feature and advertises no checkout.');
+  console.log('Quiet Kit is not registered; this release advertises no checkout or license flow.');
   process.exit(0);
 }
 if (product.checkout_url !== checkout) throw new Error(`Catalog checkout URL does not match ${checkout}.`);
-console.log('Quiet Kit is now registered. The current release still includes every feature and advertises no checkout.');
+console.log('Quiet Kit is now registered. The current release still advertises no checkout or license flow.');
