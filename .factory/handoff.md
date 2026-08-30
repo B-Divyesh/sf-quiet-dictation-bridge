@@ -77,6 +77,10 @@ purchase/return verification.
   receive the repair through the existing user-controlled update prompt.
 - Rebuilt the Android debug APK so its embedded PWA includes import, demo,
   responsive, service-worker, and release-offer repairs.
+- The post-deploy response audit found the legacy SPA fallback returned the
+  home page with HTTP 200 for unknown URLs. The final release removes that
+  unnecessary fallback and uses a styled `/404.html` through a real HTTP 404
+  response override. A source contract and 390 px axe/overflow check cover it.
 
 ## Exact local verification
 
@@ -96,7 +100,7 @@ npm run verify:billing
 ```
 
 - `npm ci`: 149 packages; audit: 0 vulnerabilities.
-- Vitest: 19/19 passed in four files.
+- Vitest: 20/20 passed in four files.
 - Playwright 1.58.2: 22/22 passed across desktop Chromium and 390 px mobile.
   Coverage includes the 10-run race stress, two-page local delivery, keyboard,
   reduced motion, axe, desktop/mobile overflow, width and height of targets,
@@ -118,8 +122,8 @@ npm run verify:billing
 - `npm run package:android`: 185 Gradle tasks passed native unit tests, lint,
   and debug assembly. Standalone final lint passed 103 tasks with 0 errors and
   20 non-blocking generated/dependency advisories.
-- APK: 10,798,359 B; SHA-256
-  `b3172b04af48ced7639ae9126febe975b0e6085a591f3de415c4a281b8d885a2`.
+- APK: 10,799,276 B; SHA-256
+  `fc9b46b8b41c9dbc37310e9ded1894cab1411f16159f667437e6d7a5e87706e3`.
   `apksigner` verifies v1/v2. `aapt` reports app ID
   `in.sociobot.quietdictationbridge`, min SDK 23, target/compile SDK 35, and
   only Internet, microphone, vibration, and scoped AndroidX receiver

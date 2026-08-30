@@ -54,7 +54,17 @@ describe('release regression contracts', () => {
     expect(swa).toContain('max-age=31536000, immutable');
     expect(swa).toContain('"route": "/download/*"');
     expect(swa).toContain('"Cache-Control": "no-cache, must-revalidate"');
-    expect(swa).toContain('wasm,apk,sha256');
+    expect(swa).toContain('"responseOverrides"');
+    expect(swa).toContain('"rewrite": "/404.html"');
+    expect(swa).not.toContain('"navigationFallback"');
+  });
+
+  it('ships a real styled not-found page', () => {
+    const page = readProjectFile('404.html');
+    expect(page).toContain('<title>Not found — Quiet Dictation Bridge</title>');
+    expect(page).toContain('<main id="main"');
+    expect(page.match(/<h1[ >]/g)).toHaveLength(1);
+    expect(page).toContain('href="/"');
   });
 
   it('keeps the installable Android artifact and its exact checksum in static source', () => {

@@ -132,9 +132,9 @@ test('@claim:offline-reload app shell reloads offline after first visit', async 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Dictate softly');
 });
 
-test('privacy and terms are standalone accessible pages', async ({ page }) => {
+test('legal and not-found pages are standalone, accessible, and responsive', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ['/privacy/', '/terms/']) {
+  for (const path of ['/privacy/', '/terms/', '/404.html']) {
     await page.goto(path);
     await expect(page.locator('main')).toHaveCount(1);
     await expect(page.locator('h1')).toHaveCount(1);

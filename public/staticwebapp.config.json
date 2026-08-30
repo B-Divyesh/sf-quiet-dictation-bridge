@@ -1,7 +1,9 @@
 {
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/*.{css,js,png,jpg,svg,webp,ico,woff2,json,txt,xml,wasm,apk,sha256}"]
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/404.html",
+      "statusCode": 404
+    }
   },
   "globalHeaders": {
     "Content-Security-Policy": "default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; media-src 'self' blob:; worker-src 'self'; manifest-src 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
