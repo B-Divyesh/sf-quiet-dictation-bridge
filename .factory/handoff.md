@@ -140,8 +140,35 @@ npm run build
 /opt/fleet/lib/deploy-static.sh quiet-dictation-bridge /work/repo/dist
 ```
 
-Post-deployment live identity, response policy, behavior, byte parity,
-offline/demo, and APK/hash evidence will be appended after deployment.
+## Post-deployment evidence
+
+Repair commits `9023abbb230cbec70ffb97007213da339767dba7` and
+`594241c21d040b285569adda2e979af5549ca1a3` were pushed to `origin/main`.
+The final `dist/` was deployed through the work-order static configuration with
+Azure deployment ID `e1f0ed33-75c1-4181-9280-b88609c68c3d` to
+<https://quiet-dictation-bridge.sociobot.in/>.
+
+- All 22 public files byte-match local `dist/`; deployment-only `_headers` and
+  `staticwebapp.config.json` were correctly excluded from public identity.
+- Live `verify-url.sh` passed in 605 ms with the exact title, `lang=en`, one H1,
+  one main, complete alt handling, labelled buttons, and zero console errors.
+- Live desktop pairing delivered `Live repair identity confirmed.` with no
+  third-party request. At 390×844, home, privacy, terms, demo, and 404 had no
+  overflow or serious/critical axe finding. Keyboard skip focus, reduced
+  motion, 49.234×44 Terms target, three isolated demo phrases, and zero normal-
+  route console errors passed.
+- Fresh live offline contexts reloaded home, terms, and demo successfully.
+- An unknown route returns HTTP 404 with the styled H1; a missing APK is also
+  HTTP 404. The root remains HTTP 200.
+- Live response headers include the same-origin-only CSP, microphone-only
+  Permissions Policy, HSTS, strict-origin referrer policy, and `nosniff`.
+  Hashed JS is immutable for one year; `sw.js` and the APK revalidate; the
+  manifest and APK use their correct MIME types.
+- Live APK is 10,799,276 B and hashes to
+  `fc9b46b8b41c9dbc37310e9ded1894cab1411f16159f667437e6d7a5e87706e3`;
+  its live checksum sidecar and local artifact match.
+- Final live Lighthouse 13.0.1 mobile: Performance 100, Accessibility 100,
+  Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.1 s, CLS 0, TBT 0 ms.
 
 ## Known limits
 
