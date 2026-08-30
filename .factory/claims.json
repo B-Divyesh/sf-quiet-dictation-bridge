@@ -1,0 +1,65 @@
+[
+  {
+    "id": "private-load",
+    "claim": "The first load sends no request to analytics, advertising, or another origin.",
+    "where": "landing page and privacy policy",
+    "test": "npm run test:e2e -- --grep @claim:private-load",
+    "sandbox": "fresh browser context; record every request and require same-origin URLs"
+  },
+  {
+    "id": "local-delivery",
+    "claim": "Confirmed text travels directly between the paired browser pages without an application relay.",
+    "where": "landing privacy summary and README",
+    "test": "npm run test:e2e -- --grep @claim:local-delivery",
+    "sandbox": "two fresh pages; complete WebRTC offer/answer; send exact phrase; record outgoing HTTP requests"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "The app shell works offline after the first successful visit.",
+    "where": "README and offline banner",
+    "test": "npm run test:e2e -- --grep @claim:offline-reload",
+    "sandbox": "fresh browser context; install service worker; set context offline; reload"
+  },
+  {
+    "id": "json-import",
+    "claim": "Validated JSON import restores transcript history and skips duplicates.",
+    "where": "receiver workspace, privacy policy, and README",
+    "test": "npm run test:e2e -- --grep @claim:json-import",
+    "sandbox": "fresh browser context; import valid, duplicate, and invalid fixtures; reload IndexedDB state"
+  },
+  {
+    "id": "json-export",
+    "claim": "JSON export includes every visible transcript.",
+    "where": "receiver workspace and README",
+    "test": "npm run test:e2e -- --grep @claim:json-export",
+    "sandbox": "demo URL with three sample phrases; parse browser download"
+  },
+  {
+    "id": "demo-isolation",
+    "claim": "Sample data uses storage separate from real transcript history.",
+    "where": "demo banner and demo documentation",
+    "test": "npm run test:e2e -- --grep @claim:demo-isolation",
+    "sandbox": "one browser context; create real history; enter, clear, and reset demo; return to real history"
+  },
+  {
+    "id": "free-release",
+    "claim": "This release requests no payment or license and includes all comfort controls.",
+    "where": "included-features section, terms, and README",
+    "test": "npm run test:e2e -- --grep @claim:free-release",
+    "sandbox": "fresh browser context; assert no checkout offer and enabled comfort controls"
+  },
+  {
+    "id": "on-device-speech",
+    "claim": "The Android bridge requests the native on-device recognizer and never configures cloud speech fallback.",
+    "where": "landing Android section, privacy policy, and README",
+    "test": "npm test -- -t @claim:on-device-speech",
+    "sandbox": "static native-source contract fixture"
+  },
+  {
+    "id": "phrase-limit",
+    "claim": "A confirmed phrase is limited to 10,000 characters and is never silently trimmed.",
+    "where": "phone workspace and README",
+    "test": "npm test -- -t @claim:phrase-limit",
+    "sandbox": "pure validation fixture containing a 10,005-character draft"
+  }
+]

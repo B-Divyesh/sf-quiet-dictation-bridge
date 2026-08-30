@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { createHash } from 'node:crypto';
 
-test('home is accessible and responsive', async ({ page }, testInfo) => {
+test('@claim:private-load home is accessible, responsive, and makes no third-party request', async ({ page }, testInfo) => {
   const errors: string[] = [];
   const externalRequests: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
@@ -14,7 +14,7 @@ test('home is accessible and responsive', async ({ page }, testInfo) => {
   await expect(page).toHaveTitle(/Quiet Dictation Bridge/);
   await expect(page.locator('main')).toHaveCount(1);
   await expect(page.locator('h1')).toHaveCount(1);
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Speak softly');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Dictate softly');
   const results = await new AxeBuilder({ page }).analyze();
   const serious = results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact || ''));
   expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
@@ -39,17 +39,12 @@ test('keyboard focus and reduced-motion treatment remain usable', async ({ page 
   expect(reducedDuration).toBeLessThanOrEqual(0.00001);
 });
 
-test('production checkout is gated by the live catalog and Android download is a real asset', async ({ page }) => {
-  await page.route('https://api.sociobot.in/api/v1/products', (route) => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ data: [] }),
-  }));
+test('@claim:free-release unregistered paid offer is not advertised and Android download is real', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('#buy-link')).toHaveAttribute('data-checkout-url', 'https://api.sociobot.in/api/v1/products/quiet-dictation-bridge/checkout');
-  await page.locator('#buy-link').click();
-  await expect(page.locator('#checkout-status')).toContainText('checkout is being prepared');
-  await expect(page).toHaveURL(/127\.0\.0\.1:4173/);
+  await expect(page.getByText('$9 one time')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /checkout/i })).toHaveCount(0);
+  await expect(page.locator('#auto-copy')).toBeEnabled();
+  await expect(page.locator('#session-label')).toBeEnabled();
   await expect(page.locator('#download-apk')).toHaveAttribute('href', '/download/quiet-dictation-bridge-debug.apk');
   await expect(page.locator('#apk-checksum')).toHaveAttribute('href', /quiet-dictation-bridge-debug\.apk\.sha256$/);
   const apk = await page.request.get('/download/quiet-dictation-bridge-debug.apk');
@@ -65,51 +60,14 @@ test('production checkout is gated by the live catalog and Android download is a
   await expect(page.getByRole('heading', { name: 'Invite your phone' })).toBeVisible();
 });
 
-test('catalog-enabled checkout opens only the exact Sociobot product route', async ({ page }) => {
-  const checkout = 'https://api.sociobot.in/api/v1/products/quiet-dictation-bridge/checkout';
-  await page.route('https://api.sociobot.in/api/v1/products', (route) => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ data: [{ slug: 'quiet-dictation-bridge', checkout_url: checkout }] }),
-  }));
-  await page.route(checkout, (route) => route.fulfill({
-    status: 200,
-    contentType: 'text/html',
-    body: '<!doctype html><title>Hosted checkout</title><h1>Hosted checkout</h1>',
-  }));
-  await page.goto('/');
-  await page.locator('#buy-link').click();
-  await expect(page).toHaveURL(checkout);
-  await expect(page).toHaveTitle('Hosted checkout');
-});
-
-test('returned and restored licenses are verified without exposing tokens in the URL', async ({ page }) => {
-  await page.route('https://api.sociobot.in/api/v1/products/quiet-dictation-bridge/verify?license=returned-token', (route) => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ valid: false, reason: 'invalid', expires_at: null }),
-  }));
-  await page.goto('/?license=returned-token');
-  await expect(page).toHaveURL('http://127.0.0.1:4173/');
-  await expect(page.locator('#license-status')).toContainText('License no longer active');
-  expect(await page.evaluate(() => localStorage.getItem('sb_license:quiet-dictation-bridge'))).toBe('returned-token');
-
-  await page.route('https://api.sociobot.in/api/v1/products/quiet-dictation-bridge/verify?license=restored-token', (route) => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ valid: true, reason: 'ok', expires_at: null }),
-  }));
-  await page.getByText('Have a license? Restore it').click();
-  await page.locator('#license-token').fill('restored-token');
-  await page.getByRole('button', { name: 'Verify license token' }).click();
-  await expect(page.locator('#license-status')).toContainText('Quiet Kit restored');
-  await expect(page.locator('#auto-copy')).toBeEnabled();
-});
-
-test('two pages pair and send reviewed text locally', async ({ browser }) => {
+test('@claim:local-delivery two pages pair and send reviewed text locally', async ({ browser }) => {
   const context = await browser.newContext();
   const desktop = await context.newPage();
   const phone = await context.newPage();
+  const externalRequests: string[] = [];
+  for (const activePage of [desktop, phone]) activePage.on('request', (request) => {
+    if (new URL(request.url()).origin !== 'http://127.0.0.1:4173') externalRequests.push(request.url());
+  });
   await Promise.all([desktop.goto('/'), phone.goto('/')]);
 
   await desktop.getByRole('button', { name: /This is my computer/ }).click();
@@ -131,10 +89,12 @@ test('two pages pair and send reviewed text locally', async ({ browser }) => {
   await phone.locator('#draft-text').fill('Quiet words arrive only after confirmation.');
   await phone.getByRole('button', { name: 'Confirm & send' }).click();
   await expect(desktop.locator('.transcript').first()).toContainText('Quiet words arrive only after confirmation.');
+  expect(externalRequests).toEqual([]);
   await context.close();
 });
 
 test('a too-long confirmed draft is kept for editing and is never sent truncated', async ({ browser }) => {
+  test.setTimeout(45_000);
   const context = await browser.newContext();
   const desktop = await context.newPage();
   const phone = await context.newPage();
@@ -142,9 +102,11 @@ test('a too-long confirmed draft is kept for editing and is never sent truncated
 
   await desktop.getByRole('button', { name: /This is my computer/ }).click();
   await desktop.getByRole('button', { name: 'Create invitation' }).click();
+  await expect(desktop.locator('#invite-code')).not.toHaveValue('', { timeout: 15_000 });
   await phone.getByRole('button', { name: /This is my phone/ }).click();
   await phone.locator('#phone-invite').fill(await desktop.locator('#invite-code').inputValue());
   await phone.getByRole('button', { name: 'Create private answer' }).click();
+  await expect(phone.locator('#phone-answer')).not.toHaveValue('', { timeout: 15_000 });
   await desktop.locator('#answer-code').fill(await phone.locator('#phone-answer').inputValue());
   await desktop.getByRole('button', { name: 'Connect phone' }).click();
   await expect(phone.locator('#dictation-workspace')).toBeVisible({ timeout: 15_000 });
@@ -161,22 +123,24 @@ test('a too-long confirmed draft is kept for editing and is never sent truncated
   await context.close();
 });
 
-test('app shell reloads offline after first visit', async ({ page, context }) => {
+test('@claim:offline-reload app shell reloads offline after first visit', async ({ page, context }) => {
   await page.goto('/');
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   await context.setOffline(true);
   await expect(page.getByText(/Internet offline/)).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Speak softly');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Dictate softly');
 });
 
 test('privacy and terms are standalone accessible pages', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   for (const path of ['/privacy/', '/terms/']) {
     await page.goto(path);
     await expect(page.locator('main')).toHaveCount(1);
     await expect(page.locator('h1')).toHaveCount(1);
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${path} must not overflow`).toBe(true);
   }
 });
 
@@ -187,7 +151,95 @@ test('phone navigation and legal links meet the 44px touch-target contract', asy
     const targets = page.locator(selector);
     for (let index = 0; index < await targets.count(); index++) {
       const box = await targets.nth(index).boundingBox();
+      expect(box?.width, selector).toBeGreaterThanOrEqual(44);
       expect(box?.height, selector).toBeGreaterThanOrEqual(44);
     }
   }
+});
+
+test('@claim:json-import transcript import validates files, skips duplicates, and persists restored history', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /This is my computer/ }).click();
+  const exportData = {
+    product: 'Quiet Dictation Bridge',
+    exportedAt: '2026-08-30T10:00:00.000Z',
+    transcripts: [
+      { id: 91, text: 'Restored without changing a word.', receivedAt: '2026-08-30T09:30:00.000Z' },
+      { id: 92, text: 'A second restored phrase.', receivedAt: '2026-08-30T09:31:00.000Z', session: 'Morning notes' },
+    ],
+  };
+
+  await page.locator('#import-history').setInputFiles({
+    name: 'quiet-bridge-export.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(exportData)),
+  });
+  await expect(page.locator('#history-status')).toHaveText('Imported 2 phrases.');
+  await expect(page.locator('.transcript')).toHaveCount(2);
+  await expect(page.locator('.transcript').first()).toContainText('A second restored phrase.');
+
+  await page.locator('#import-history').setInputFiles({
+    name: 'quiet-bridge-export.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(exportData)),
+  });
+  await expect(page.locator('#history-status')).toHaveText('Imported 0 phrases. Skipped 2 duplicates.');
+  await expect(page.locator('.transcript')).toHaveCount(2);
+
+  await page.locator('#import-history').setInputFiles({
+    name: 'broken.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"product":"another tool","transcripts":[]}'),
+  });
+  await expect(page.locator('#bridge-alert')).toContainText('not a Quiet Dictation Bridge export');
+  await expect(page.locator('.transcript')).toHaveCount(2);
+
+  await page.reload();
+  await page.getByRole('button', { name: /This is my computer/ }).click();
+  await expect(page.locator('.transcript')).toHaveCount(2);
+  await expect(page.locator('.transcript').first()).toContainText('A second restored phrase.');
+});
+
+test('@claim:json-export transcript export downloads every visible sample phrase', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await expect(page.locator('.transcript')).toHaveCount(3);
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export JSON' }).click();
+  const download = await downloadPromise;
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  const exported = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  expect(exported.product).toBe('Quiet Dictation Bridge');
+  expect(exported.transcripts).toHaveLength(3);
+  expect(exported.transcripts.map((item: { text: string }) => item.text)).toContain('Send the revised agenda after lunch.');
+});
+
+test('@claim:demo-isolation sample mode resets separately from real history', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /This is my computer/ }).click();
+  await page.locator('#import-history').setInputFiles({
+    name: 'real-history.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({
+      product: 'Quiet Dictation Bridge',
+      transcripts: [{ text: 'This belongs to real history.', receivedAt: '2026-08-30T10:00:00.000Z' }],
+    })),
+  });
+  await expect(page.locator('.transcript')).toHaveCount(1);
+
+  await page.goto('/?demo=1');
+  await expect(page).toHaveTitle('Demo — Quiet Dictation Bridge');
+  await expect(page.locator('#demo-banner')).toContainText('nothing is saved to your real history');
+  await expect(page.locator('.transcript')).toHaveCount(3);
+  page.once('dialog', (dialog) => void dialog.accept());
+  await page.getByRole('button', { name: 'Clear local history' }).click();
+  await expect(page.locator('.transcript')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.locator('.transcript')).toHaveCount(3);
+
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await page.getByRole('button', { name: /This is my computer/ }).click();
+  await expect(page.locator('.transcript')).toHaveCount(1);
+  await expect(page.locator('.transcript').first()).toContainText('This belongs to real history.');
 });

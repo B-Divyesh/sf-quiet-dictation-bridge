@@ -1,8 +1,8 @@
 import './style.css';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { transcriptFilename } from './core';
-import { addTranscript, clearTranscripts, getTranscripts, type Transcript } from './db';
-import { isQuietKitUnlocked, setupLicense } from './license';
+import { addTranscript, addTranscripts, clearTranscripts, getTranscripts, type Transcript } from './db';
+import { parseTranscriptImport } from './import';
 import { LocalPeer } from './peer';
 import { chooseSpeechPath, type SpeechPath } from './speech';
 import { validateDraftForSend } from './transcript';
@@ -13,7 +13,12 @@ const show = (selector: string, visible: boolean) => { $(selector)?.toggleAttrib
 let peer: LocalPeer | null = null;
 let role: 'desktop' | 'phone' | null = null;
 let historyItems: Transcript[] = [];
-let quietKit = isQuietKitUnlocked();
+const demoMode = new URLSearchParams(location.search).get('demo') === '1';
+const demoTranscripts: Array<Omit<Transcript, 'id'>> = [
+  { text: 'Move the project check-in to Thursday at eleven.', receivedAt: '2026-08-30T09:42:00.000Z', session: 'Project notes' },
+  { text: 'Add the accessibility review before the release handoff.', receivedAt: '2026-08-30T09:39:00.000Z', session: 'Project notes' },
+  { text: 'Send the revised agenda after lunch.', receivedAt: '2026-08-30T09:35:00.000Z', session: 'Daily admin' },
+];
 
 function announce(message: string) {
   const alert = $('#bridge-alert');
@@ -169,11 +174,11 @@ async function receiveTranscript(text: string) {
   const clean = text.trim();
   if (!clean) return;
   const sessionField = $('#session-label') as HTMLInputElement | null;
-  const item = await addTranscript({ text: clean, receivedAt: new Date().toISOString(), session: quietKit ? sessionField?.value.trim() || undefined : undefined });
+  const item = await addTranscript({ text: clean, receivedAt: new Date().toISOString(), session: sessionField?.value.trim() || undefined });
   historyItems.unshift(item);
   renderHistory();
   const autoCopy = $('#auto-copy') as HTMLInputElement | null;
-  if (quietKit && autoCopy?.checked) {
+  if (autoCopy?.checked) {
     try { await copyText(clean); setConnectionStatus('desktop', 'Phrase received and copied · paste with Ctrl/Cmd + V', 'connected'); }
     catch { setConnectionStatus('desktop', 'Phrase received · choose Copy to use it', 'connected'); }
   } else setConnectionStatus('desktop', 'Phrase received · choose Copy, then paste', 'connected');
@@ -334,17 +339,6 @@ function sendDraft() {
   } catch (error) { announce(error instanceof Error ? error.message : 'Could not send the phrase.'); }
 }
 
-function updatePaidControls(unlocked: boolean, message: string) {
-  quietKit = unlocked;
-  const status = $('#license-status');
-  if (status) status.textContent = message;
-  const autoCopy = $('#auto-copy') as HTMLInputElement | null;
-  const session = $('#session-label') as HTMLInputElement | null;
-  if (autoCopy) { autoCopy.disabled = !unlocked; if (!unlocked) autoCopy.checked = false; }
-  if (session) session.disabled = !unlocked;
-  document.querySelectorAll<HTMLOptionElement>('#tone-choice option:not(:first-child)').forEach((option) => { option.disabled = !unlocked; });
-}
-
 async function exportHistory() {
   const content = JSON.stringify({ product: 'Quiet Dictation Bridge', exportedAt: new Date().toISOString(), transcripts: historyItems }, null, 2);
   const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }));
@@ -353,6 +347,32 @@ async function exportHistory() {
   link.download = transcriptFilename();
   link.click();
   URL.revokeObjectURL(url);
+}
+
+async function importHistory(file: File) {
+  const status = $('#history-status');
+  try {
+    const parsed = parseTranscriptImport(await file.text(), historyItems);
+    const imported = await addTranscripts(parsed.items);
+    historyItems = [...imported, ...historyItems].sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
+    renderHistory();
+    if (status) {
+      const phraseWord = imported.length === 1 ? 'phrase' : 'phrases';
+      const duplicateNote = parsed.duplicates > 0 ? ` Skipped ${parsed.duplicates} duplicate${parsed.duplicates === 1 ? '' : 's'}.` : '';
+      status.textContent = `Imported ${imported.length} ${phraseWord}.${duplicateNote}`;
+    }
+  } catch (error) {
+    announce(error instanceof Error ? error.message : 'Could not import this file. Choose a Quiet Bridge JSON export.');
+  }
+}
+
+async function resetDemoHistory() {
+  await clearTranscripts();
+  historyItems = await addTranscripts(demoTranscripts);
+  historyItems.sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
+  renderHistory();
+  const status = $('#history-status');
+  if (status) status.textContent = 'Demo reset to three sample phrases.';
 }
 
 function bindEvents() {
@@ -376,10 +396,17 @@ function bindEvents() {
   $('#send-draft')?.addEventListener('click', sendDraft);
   $('#discard-draft')?.addEventListener('click', () => { ($('#draft-text') as HTMLTextAreaElement).value = ''; });
   $('#export-history')?.addEventListener('click', () => void exportHistory());
+  $('#import-history-button')?.addEventListener('click', () => $<HTMLInputElement>('#import-history')?.click());
+  $('#import-history')?.addEventListener('change', (event) => {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) void importHistory(file).finally(() => { input.value = ''; });
+  });
   $('#clear-history')?.addEventListener('click', async () => {
     if (!confirm(`Clear ${historyItems.length} saved phrase${historyItems.length === 1 ? '' : 's'} from this device? This cannot be undone.`)) return;
     await clearTranscripts(); historyItems = []; renderHistory();
   });
+  $('#reset-demo')?.addEventListener('click', () => void resetDemoHistory());
 }
 
 function setupNetworkState() {
@@ -415,9 +442,13 @@ async function init() {
   if (Capacitor.isNativePlatform()) show('.apk-section', false);
   setupNetworkState();
   historyItems = await getTranscripts().catch(() => []);
+  if (demoMode && historyItems.length === 0) historyItems = await addTranscripts(demoTranscripts);
   renderHistory();
-  updatePaidControls(quietKit, quietKit ? 'Quiet Kit unlocked' : 'Free edition');
-  void setupLicense(updatePaidControls);
+  if (demoMode) {
+    document.title = 'Demo — Quiet Dictation Bridge';
+    show('#demo-banner', true);
+    setRole('desktop');
+  }
   void setupServiceWorker().catch(() => { /* The online app remains usable if SW registration is blocked. */ });
 }
 

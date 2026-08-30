@@ -5,13 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#080d12" />
     <meta name="description" content="Private, deliberate phone-to-desktop dictation over your local network." />
+    <link rel="canonical" href="https://quiet-dictation-bridge.sociobot.in/" />
+    <meta property="og:title" content="Quiet Dictation Bridge — private phone-to-desktop dictation" />
+    <meta property="og:description" content="Private, deliberate phone-to-desktop dictation over your local network." />
+    <meta property="og:image" content="https://quiet-dictation-bridge.sociobot.in/art/social-preview.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
     <title>Quiet Dictation Bridge — private phone-to-desktop dictation</title>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
     <div id="offline-banner" class="network-banner" role="status" hidden>Internet offline · local pairing can still work on the same Wi-Fi</div>
+    <div id="demo-banner" class="demo-banner" role="status" hidden><span><strong>Demo</strong> — sample data, nothing is saved to your real history</span><button id="reset-demo" type="button">Reset demo</button><a href="/">Start for real</a></div>
     <header class="site-header">
       <a class="brand" href="/" aria-label="Quiet Dictation Bridge home">
         <img src="/icon.svg" width="38" height="38" alt="" />
@@ -20,7 +29,7 @@
       <nav aria-label="Primary navigation">
         <a href="#bridge">Open bridge</a>
         <a href="#how">How it works</a>
-        <a href="#pricing">One-time unlock</a>
+        <a href="#pricing">Included features</a>
       </nav>
     </header>
 
@@ -32,13 +41,15 @@
         </picture>
         <div class="hero-shade"></div>
         <div class="hero-copy">
-          <p class="eyebrow"><span class="live-dot"></span> Private by proximity</p>
-          <h1 id="hero-title">Speak softly.<br />Keep your flow.</h1>
-          <p class="hero-lede">Use your phone’s close microphone as a deliberate push-to-talk bridge to your computer. No account, no recording archive, no cloud relay.</p>
+          <p class="eyebrow"><span class="live-dot"></span> Private local dictation</p>
+          <h1 id="hero-title">Dictate softly from phone to computer.</h1>
+          <p class="hero-lede">For people whose pain, fatigue, or motor access makes typing difficult in shared workspaces.</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#bridge">Set up the bridge <span aria-hidden="true">↓</span></a>
+            <a class="button button-primary" href="/?demo=1">Try it with sample data</a>
+            <a class="text-link" href="#bridge">Set up the bridge</a>
             <a class="text-link" href="#privacy-note">See the privacy model</a>
           </div>
+          <p class="hero-action-note">The sample opens three received phrases. Your saved history stays separate.</p>
         </div>
         <div class="scene-caption" aria-hidden="true"><span>01</span> Close mic / local path / confirmed send</div>
       </section>
@@ -51,7 +62,7 @@
 
       <section id="bridge" class="bridge-section" aria-labelledby="bridge-title">
         <div class="section-heading">
-          <p class="eyebrow">Workbench</p>
+          <p class="eyebrow">Set up</p>
           <h2 id="bridge-title">Choose this device’s position.</h2>
           <p>Open this page on both devices. Your computer creates an invitation; your phone returns the answer. Pairing codes stay between you.</p>
         </div>
@@ -82,10 +93,11 @@
             </div>
           </div>
           <div id="receiver-workspace" hidden>
-            <div class="receiver-head"><div><p class="step-label">Live inbox</p><h3>Confirmed dictation</h3></div><button id="export-history" class="quiet-button" type="button">Export JSON</button></div>
-            <label for="session-label">Session label <small class="paid-mark">Quiet Kit</small></label>
-            <input id="session-label" type="text" maxlength="40" placeholder="For example, Design review" disabled />
-            <label class="toggle-row" id="autocopy-row"><input id="auto-copy" type="checkbox" /><span><strong>Auto-copy new phrases</strong><small>Quiet Kit feature · manual copy stays free</small></span></label>
+            <div class="receiver-head"><div><p class="step-label">Live inbox</p><h3>Confirmed dictation</h3></div><div class="history-actions"><button id="import-history-button" class="quiet-button" type="button">Import JSON</button><input id="import-history" type="file" accept="application/json,.json" hidden /><button id="export-history" class="quiet-button" type="button">Export JSON</button></div></div>
+            <p id="history-status" class="microcopy" role="status" aria-live="polite">Import and export keep your local transcript history portable.</p>
+            <label for="session-label">Session label</label>
+            <input id="session-label" type="text" maxlength="40" placeholder="For example, Design review" />
+            <label class="toggle-row" id="autocopy-row"><input id="auto-copy" type="checkbox" /><span><strong>Auto-copy new phrases</strong><small>Optional · manual copy is always available</small></span></label>
             <ol id="transcript-list" class="transcript-list" aria-live="polite" aria-label="Received dictation"></ol>
             <div id="receiver-empty" class="empty-state"><span aria-hidden="true">◎</span><strong>Waiting for your first phrase</strong><p>Hold the microphone on your phone, review, then send.</p></div>
             <button id="clear-history" class="danger-button" type="button">Clear local history</button>
@@ -109,8 +121,8 @@
           </div>
           <div id="dictation-workspace" class="dictation-workspace" hidden>
             <p id="speech-support" class="support-note" role="status"></p>
-            <label for="tone-choice">Confirmation tone <small class="paid-mark">two Quiet Kit choices</small></label>
-            <select id="tone-choice"><option value="soft">Soft tap</option><option value="warm" disabled>Warm chime</option><option value="clear" disabled>Clear bell</option></select>
+            <label for="tone-choice">Confirmation tone</label>
+            <select id="tone-choice"><option value="soft">Soft tap</option><option value="warm">Warm chime</option><option value="clear">Clear bell</option></select>
             <button id="talk-button" class="talk-button" type="button" aria-describedby="talk-help">
               <span class="talk-rings" aria-hidden="true"></span><span class="mic-glyph" aria-hidden="true">●</span><strong>Hold to talk</strong><small>Release to review</small>
             </button>
@@ -126,7 +138,7 @@
       </section>
 
       <section id="how" class="how-section" aria-labelledby="how-title">
-        <div class="section-heading"><p class="eyebrow">Three deliberate beats</p><h2 id="how-title">Nothing listens until you press.</h2></div>
+        <div class="section-heading"><p class="eyebrow">How it works</p><h2 id="how-title">Nothing listens until you press.</h2></div>
         <ol class="steps">
           <li><span>01</span><h3>Pair nearby</h3><p>Exchange one-time codes. WebRTC connects directly on your LAN with DTLS encryption.</p></li>
           <li><span>02</span><h3>Hold, then review</h3><p>Your phone asks its installed speech service for on-device recognition. Edit before anything leaves.</p></li>
@@ -136,14 +148,11 @@
       </section>
 
       <section id="pricing" class="pricing-section" aria-labelledby="pricing-title">
-        <div><p class="eyebrow">Support the utility</p><h2 id="pricing-title">The bridge is useful for free.</h2><p>Pair, dictate, review, copy, export, and use accessibility controls without paying. Quiet Kit adds comforts for daily use.</p></div>
+        <div><p class="eyebrow">Release pricing</p><h2 id="pricing-title">Every feature is included.</h2><p>The planned paid option is not registered, so this release includes every comfort feature without a license.</p></div>
         <div class="price-panel">
-          <p class="price"><span>$9</span> one time</p>
+          <p class="price"><span>Free</span> in this release</p>
           <ul><li>Automatic clipboard copy</li><li>Session labels in exports</li><li>Three confirmation tone choices</li><li>All future Quiet Kit updates</li></ul>
-          <button id="buy-link" class="button button-primary" type="button" aria-describedby="checkout-status">Check Quiet Kit checkout</button>
-          <p id="checkout-status" class="microcopy" role="status">Availability is confirmed before opening checkout. Final price and tax appear there; Sociobot/Dodo is merchant of record.</p>
-          <details><summary>Have a license? Restore it</summary><form id="license-form"><label for="license-token">License token</label><input id="license-token" type="text" autocomplete="off" /><button class="button button-secondary" type="submit" aria-label="Verify license token">Verify license</button></form></details>
-          <p id="license-status" class="license-status" role="status">Free edition</p>
+          <p class="microcopy">No payment or license token is requested. Factory registration can restore the researched one-time offer in a later release.</p>
         </div>
       </section>
 

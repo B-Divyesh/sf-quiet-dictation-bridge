@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#080d12" />
     <meta name="description" content="Privacy policy for Quiet Dictation Bridge." />
+    <link rel="canonical" href="https://quiet-dictation-bridge.sociobot.in/privacy/" />
+    <meta property="og:title" content="Privacy — Quiet Dictation Bridge" />
+    <meta property="og:description" content="Privacy policy for Quiet Dictation Bridge." />
+    <meta property="og:image" content="https://quiet-dictation-bridge.sociobot.in/art/social-preview.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
     <title>Privacy — Quiet Dictation Bridge</title>
   </head>
   <body class="legal-page">
@@ -13,16 +19,16 @@
     <header class="legal-header"><a class="brand" href="/"><img src="/icon.svg" width="38" height="38" alt="" /><span>Quiet Dictation<br /><small>Bridge</small></span></a><a href="/">Back to bridge</a></header>
     <main id="main" class="legal-main">
       <p class="eyebrow">The short version</p>
-      <h1>Privacy stays close.</h1>
-      <p class="legal-lede">Quiet Dictation Bridge has no account system, analytics, advertising, or cloud relay. Its working data stays on your devices or travels directly between the two devices you pair.</p>
+      <h1>Your dictation stays local.</h1>
+      <p class="legal-lede">Quiet Dictation Bridge has no account system, analytics, advertising, or cloud relay. Working data stays on your devices or travels directly between paired devices.</p>
       <h2>What stays on your device</h2>
-      <p>Received transcripts are stored in your computer browser’s IndexedDB. License tokens and their last verification result are stored in localStorage. Pairing codes are kept only in page memory and disappear when you reload. You can export transcripts as JSON or clear them at any time.</p>
+      <p>Received transcripts are stored in your computer browser’s IndexedDB. Pairing codes stay in page memory and disappear when you reload. You can import, export, or clear transcripts at any time.</p>
       <h2>Speech recognition</h2>
       <p>In the installed Android app, Quiet Bridge uses Android 12+’s native on-device recognizer and asks for a locally installed language pack. In a browser, the microphone control is enabled only when the browser exposes an on-device recognition mode. Quiet Bridge does not deliberately fall back to cloud transcription. Your browser or operating system supplies the speech engine and its installed language pack, so review its privacy settings as well. You can always use typed text to test the bridge.</p>
       <h2>What crosses the network</h2>
       <p>Pairing uses WebRTC without configured STUN, TURN, or application relay servers. The invitation and answer contain short-lived local connection metadata and are exchanged by you. Confirmed text travels over the resulting DTLS-encrypted peer connection. Only the device you pair can receive it.</p>
-      <h2>Licenses and checkout</h2>
-      <p>If you buy or verify Quiet Kit, your browser contacts the Sociobot billing API. The API receives the license token, product slug, and ordinary request metadata such as IP address. Checkout is hosted by Sociobot/Dodo, the merchant of record; their policies apply to payment details. Quiet Bridge never receives card details.</p>
+      <h2>No checkout</h2>
+      <p>This release has no purchase or license flow. It does not contact a billing service.</p>
       <h2>Contact and changes</h2>
       <p>This policy is effective 28 August 2026. Material changes will be reflected here. Questions can be raised through the project’s public source repository.</p>
     </main>

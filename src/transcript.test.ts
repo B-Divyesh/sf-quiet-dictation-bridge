@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { MAX_TRANSCRIPT_LENGTH, validateDraftForSend } from './transcript';
 
 describe('confirmed transcript limits', () => {
-  it('rejects an over-limit draft before send without changing its text', () => {
+  it('@claim:phrase-limit rejects an over-limit draft before send without changing its text', () => {
     const tooLong = `${'a'.repeat(MAX_TRANSCRIPT_LENGTH)} tail`;
 
     expect(validateDraftForSend(tooLong)).toEqual({

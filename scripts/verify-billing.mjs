@@ -7,18 +7,8 @@ const catalog = await catalogResponse.json();
 const product = catalog.data?.find((item) => item.slug === slug);
 
 if (!product) {
-  console.log('Quiet Kit is not registered; the app will withhold checkout and keep license restoration available.');
+  console.log('Quiet Kit is not registered; this release includes every feature and advertises no checkout.');
   process.exit(0);
 }
 if (product.checkout_url !== checkout) throw new Error(`Catalog checkout URL does not match ${checkout}.`);
-
-const response = await fetch(checkout, { redirect: 'manual' });
-
-if (![302, 303].includes(response.status)) {
-  const body = await response.text();
-  throw new Error(`Hosted Quiet Kit checkout must redirect (received HTTP ${response.status}: ${body.slice(0, 240)})`);
-}
-
-const location = response.headers.get('location');
-if (!location?.startsWith('https://')) throw new Error('Hosted Quiet Kit checkout did not return an HTTPS location.');
-console.log(`Hosted checkout redirects to ${new URL(location).origin}.`);
+console.log('Quiet Kit is now registered. The current release still includes every feature and advertises no checkout.');

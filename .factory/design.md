@@ -97,6 +97,10 @@ state changes remain through labels, border weight, and color.
 The source PNG and prompt sidecar are kept under `assets/src/`. The shipping
 WebP is resized/optimized and must remain under 300 KB.
 
+`public/art/social-preview.jpg` is a 1200×630 center crop of the same reviewed
+original, created locally with ImageMagick on 2026-08-30. It introduces no new
+source material or license.
+
 ## Responsive intent
 
 Desktop stages the scene and setup side by side. At 390 px the artwork becomes

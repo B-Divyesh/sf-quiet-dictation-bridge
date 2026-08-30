@@ -31,6 +31,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .skip-link:focus { transform: translateY(0); }
 
 .network-banner { position: relative; z-index: 20; padding: 7px 16px; text-align: center; color: var(--ember-ink); background: var(--warning); font-size: 14px; font-weight: 750; }
+.demo-banner { position: fixed; z-index: 45; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 10px; max-width: calc(100% - 32px); padding: 10px 12px; color: var(--paper); background: var(--slate); border: 1px solid var(--signal); border-radius: 12px; box-shadow: 0 14px 44px #0008; font-size: 14px; }
+.demo-banner button, .demo-banner a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; color: var(--paper); background: transparent; border: 1px solid #61747d; border-radius: 8px; padding: 8px 10px; cursor: pointer; }
 .site-header { position: absolute; inset: 0 0 auto; z-index: 10; display: flex; align-items: center; justify-content: space-between; width: min(100% - 48px, 1200px); margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 0; }
 .brand { display: flex; align-items: center; min-height: 44px; gap: 10px; text-decoration: none; font: 800 14px/1.05 var(--display); text-transform: uppercase; letter-spacing: .08em; }
 .brand img { border-radius: 9px; }
@@ -51,6 +53,7 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; }
 h1 { max-width: 810px; margin-bottom: 24px; font-size: clamp(3.5rem, 8.1vw, 6.8rem); line-height: .88; letter-spacing: -.055em; text-transform: uppercase; }
 .hero-lede { max-width: 650px; margin-bottom: 34px; color: #d2d9dc; font-size: clamp(1.08rem, 2vw, 1.32rem); line-height: 1.55; }
 .hero-actions, .send-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.hero-action-note { max-width: 600px; margin: 14px 0 0; color: var(--fog); font-size: 14px; }
 .button { min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid transparent; border-radius: 10px; padding: 12px 19px; cursor: pointer; font-weight: 800; text-decoration: none; transition: transform 180ms ease, background 180ms ease, border-color 180ms ease; }
 .button:hover { transform: translateY(-2px); }
 .button:active { transform: translateY(1px); }
@@ -81,6 +84,7 @@ h2 { margin-bottom: 18px; font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: .9
 .role-icon { display: grid; flex: 0 0 62px; width: 62px; height: 62px; place-items: center; border-radius: 50%; background: var(--slate); color: var(--ember); font-size: 33px; }
 .device-panel { position: relative; margin-top: 28px; padding: clamp(24px, 5vw, 54px); background: var(--ink); border: 1px solid var(--line); border-radius: 24px; box-shadow: 0 32px 80px rgba(0,0,0,.25); }
 .panel-topline, .receiver-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.history-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .step-label { margin-bottom: 10px; color: var(--ember); font-size: 12px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
 .device-panel h3 { margin-bottom: 14px; font-size: clamp(2rem, 4vw, 3.3rem); line-height: 1; text-transform: uppercase; }
 .quiet-button, .danger-button { min-height: 44px; padding: 8px 12px; color: var(--fog); background: transparent; border: 1px solid transparent; border-radius: 8px; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
@@ -159,7 +163,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 footer p { margin: 0; }
 footer p:first-child { display: flex; align-items: center; gap: 10px; color: var(--paper); font-weight: 800; }
 footer nav { display: flex; gap: 18px; }
-footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
+footer nav a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding-inline: 4px; }
 .toast { position: fixed; z-index: 50; right: 20px; bottom: 20px; display: flex; align-items: center; gap: 16px; padding: 14px 16px; color: var(--paper); background: var(--slate); border: 1px solid var(--signal); border-radius: 12px; box-shadow: 0 14px 44px #0008; }
 .toast button { min-height: 44px; color: var(--ember-ink); background: var(--signal); border: 0; border-radius: 8px; padding: 0 14px; font-weight: 800; cursor: pointer; }
 
@@ -182,13 +186,17 @@ footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
   .apk-section { padding: 58px 0 78px; }
   .role-switch, .steps, .pricing-section { grid-template-columns: 1fr; }
   .device-panel { padding: 22px 18px; border-radius: 16px; }
-  .panel-topline { align-items: start; }
+  .panel-topline, .receiver-head { align-items: start; }
+  .receiver-head { flex-direction: column; }
+  .history-actions { justify-content: flex-start; }
   .transcript { grid-template-columns: 1fr; }
   .copy-transcript { grid-row: auto; width: 100%; }
   .steps li { min-height: 0; padding: 24px 0; border-right: 0; }
   .steps h3 { margin-top: 28px; }
   .pricing-section { gap: 30px; }
   footer { align-items: flex-start; flex-direction: column; }
+  .demo-banner { left: 16px; right: 16px; flex-wrap: wrap; }
+  .demo-banner span { flex: 1 0 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -207,5 +215,5 @@ footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
 @media (max-width: 760px) {
   .legal-header, .legal-main { width: calc(100% - 32px); }
   .legal-main { padding: 70px 0 90px; }
-  .legal-main h1 { font-size: 3.6rem; }
+  .legal-main h1 { max-width: 100%; font-size: clamp(2.6rem, 12.8vw, 3.6rem); overflow-wrap: anywhere; }
 }

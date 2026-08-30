@@ -1,6 +1,8 @@
 export type Transcript = { id?: number; text: string; receivedAt: string; session?: string };
 
-const DB_NAME = 'quiet-dictation-bridge';
+const DB_NAME = typeof location !== 'undefined' && new URLSearchParams(location.search).get('demo') === '1'
+  ? 'demo:quiet-dictation-bridge'
+  : 'quiet-dictation-bridge';
 const STORE = 'transcripts';
 
 function openDb(): Promise<IDBDatabase> {
@@ -21,6 +23,23 @@ export async function addTranscript(item: Transcript): Promise<Transcript> {
     const request = db.transaction(STORE, 'readwrite').objectStore(STORE).add(item);
     request.onsuccess = () => resolve({ ...item, id: Number(request.result) });
     request.onerror = () => reject(request.error);
+  });
+}
+
+export async function addTranscripts(items: Array<Omit<Transcript, 'id'>>): Promise<Transcript[]> {
+  if (items.length === 0) return [];
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE, 'readwrite');
+    const store = transaction.objectStore(STORE);
+    const added: Transcript[] = [];
+    for (const item of items) {
+      const request = store.add(item);
+      request.onsuccess = () => { added.push({ ...item, id: Number(request.result) }); };
+    }
+    transaction.oncomplete = () => resolve(added);
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error || new Error('Import was canceled by browser storage.'));
   });
 }
 

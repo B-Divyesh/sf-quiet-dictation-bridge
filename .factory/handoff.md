@@ -1,75 +1,149 @@
-# Quiet Dictation Bridge — verification 4 handoff
+# Quiet Dictation Bridge — repair 4 handoff
 
-**FAIL** — candidate `c70703a155703f7c52200f5b5276e2682cef41b8`
-at <https://quiet-dictation-bridge.sociobot.in/> was independently verified on
-2026-08-28 UTC. Full evidence is in `.factory/verification-4.md`.
+- Work order: `quiet-dictation-bridge-repair-4`
+- Report commit: `213b103d7ca71d44a70fb5a8df6c92d69bdf534e`
+- Failed candidate: `c70703a155703f7c52200f5b5276e2682cef41b8`
+- Source report: `.factory/verification-4.md`
+- Date: 2026-08-30 UTC
 
-## Release blockers
+## Repairs
 
-1. **P1:** The exact `npm run test:e2e` gate is flaky. The first clean run
-   failed 1/20; the isolated desktop long-draft case failed 2/5 because it reads
-   the asynchronously generated answer before waiting for a value. A later full
-   run passed 20/20, confirming nondeterminism rather than resolution.
-2. **P1:** Quiet Kit is not registered in the production Sociobot catalog and
-   direct checkout is HTTP 404, so the advertised `$9 one time` unlock cannot
-   be purchased or verified end to end.
-3. **P2:** `/terms/` is 416 px wide at a 390 px viewport; the 400 px-wide
-   `DELIBERATELY.` H1 content clips inside its 358 px box.
-4. **P2:** The footer `Terms` link is 41.234 by 44 CSS px, below the required
-   44 by 44 target size.
-5. **P2:** IndexedDB transcript data can be exported but not imported, contrary
-   to the supplied PWA/local-first data-ownership contract.
+### P1 — deterministic browser quality gate
 
-## What passed
+The unchanged candidate’s long-draft case was reproduced first. It failed 9 of
+10 isolated desktop repetitions because the test read asynchronous WebRTC
+offer/answer fields before ICE gathering completed. The regression now waits
+for both non-empty values and gives this connection-bound case a 45-second
+total budget. The exact repaired case passed 10/10 repetitions, and the final
+full suite passed 22/22 across desktop Chromium and a 390 px mobile profile.
 
-- `npm ci`; `npm test` (12/12); `npm run build`; `npm run cap:sync`;
-  `npm run lint:android` (0 errors, 20 warnings); and
-  `npm run package:android` (185 Gradle tasks, tests/lint/assembly) passed.
-- The clean build's 21 public files byte-match live. The live APK is 10,745,849
-  B with SHA-256
-  `6f9f37c3efa53652591be01b42ecd8419de6c2d6528b3959674a4e9e75be70e7`;
-  its sidecar matches, caching revalidates, and a missing APK is 404.
-- Normal live desktop/390 px pairing and confirmed delivery passed. Five live
-  send latencies had a 910 ms median. Invalid input recovery, no pre-confirm
-  transmission, exact 10,000-character delivery, over-limit refusal, manual
-  copy, JSON export, IndexedDB persistence, confirmed clear, and ephemeral
-  pairing codes passed.
-- Initial load made no third-party request. No analytics, CDN resource,
-  STUN/TURN, relay, or cloud speech fallback was found. CSP, permissions policy,
-  HSTS, referrer policy, and `nosniff` are live.
-- Axe had no serious/critical findings across live home/legal pages and local
-  connected states. Keyboard focus, reduced motion, offline home/legal reload,
-  and the user-controlled service-worker update path passed.
-- Lighthouse 13.0.1 mobile scored 100/100/100/100; FCP 0.9 s, LCP 1.1 s, CLS 0,
-  TBT 60 ms. Main JS is 25.35 kB raw and CSS 14.83 kB raw.
-- The debug APK has valid v1/v2 signatures, expected ID/SDK levels, no cleartext
-  traffic or backup, and the expected narrow permission set. A clean rebuild's
-  485 non-signature entries match the committed APK exactly.
+`npm run test:e2e` now runs the production build first. It is self-contained
+from a fresh `npm ci`, including when invoked by an individual claim test.
 
-## Coverage limitation
+### P1 — unavailable paid offer
 
-No hardware Android device was attached. An Android 15 emulator was attempted,
-but the container lacks KVM/VMX and software emulation did not become usable.
-Physical Android 12+ microphone permission release/cancel, installed local
-language pack, tone/haptic, back gesture, and two-device LAN behavior remain to
-be smoked before release.
+The production Sociobot catalog still has no `quiet-dictation-bridge` product,
+and repository policy forbids changing billing infrastructure from this repo.
+Repeatedly advertising a `$9 one-time` product therefore could not produce an
+honest purchase path. This release applies the repository’s closest-useful-
+version rule instead of parking the blocker:
 
-## Reproduce
+- the unavailable price, checkout button, license form, and runtime billing
+  connection are removed;
+- automatic copy, session labels, and all confirmation tones are enabled for
+  everyone;
+- the page, README, privacy policy, and terms state that this release has no
+  payment or license requirement;
+- the CSP now permits only same-origin runtime connections; and
+- `npm run verify:billing` records the external catalog state without claiming
+  that a purchase is available.
+
+The researched one-time model remains in `.factory/brief.json`. A later release
+may reinstate it only after factory-side product registration and a real hosted
+purchase/return verification.
+
+### P2 — Terms overflow and footer target
+
+- The legal H1 now uses a width-aware mobile clamp with safe word wrapping.
+  At exactly 390×844, `/terms/` has a 390 px document width and its 358 px H1
+  has a 358 px scroll width.
+- Every footer link now has both a 44 px minimum width and height. The repaired
+  Terms target measures 49.234×44 CSS px at desktop and 390 px.
+- Playwright asserts legal-page overflow and both touch-target dimensions.
+
+### P2 — transcript import
+
+- Added free, validated JSON import beside export.
+- Import accepts only Quiet Dictation Bridge exports, validates every phrase,
+  enforces the 10,000-character and 40-character session limits, ignores old
+  database IDs, and commits only after the complete file validates.
+- Existing and within-file duplicates are skipped by exact text/date/session
+  identity. Clear success counts and actionable errors are announced.
+- Unit and browser regressions cover valid restore, ID replacement, invalid
+  product/JSON/date/text/session/length cases, duplicate handling, no partial
+  mutation, and persistence after reload.
+
+## Additional contract work
+
+- Added a one-click `/?demo=1` sandbox with three realistic phrases, a
+  persistent banner, reset, and return-to-real action. Demo data uses IndexedDB
+  `demo:quiet-dictation-bridge`; real history remains in
+  `quiet-dictation-bridge`. See `.factory/demo.md`.
+- Added `.factory/claims.json`; every listed command passed independently.
+- Added a plain-language first screen, copy audit, canonical/Open Graph/Twitter
+  metadata, apple-touch metadata, and a 1200×630 local crop of the existing
+  original hero art. Provenance is recorded in `.factory/design.md`.
+- Bumped the service-worker/manifest shell from v3 to v4 so installed clients
+  receive the repair through the existing user-controlled update prompt.
+- Rebuilt the Android debug APK so its embedded PWA includes import, demo,
+  responsive, service-worker, and release-offer repairs.
+
+## Exact local verification
+
+Fresh dependency and web gates:
 
 ```sh
 npm ci
+npm audit --omit=dev
 npm test
 npm run build
 npm run test:e2e
+npm run cap:sync
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
   ANDROID_HOME=/opt/android-sdk ANDROID_SDK_ROOT=/opt/android-sdk \
   npm run lint:android
-JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
-  ANDROID_HOME=/opt/android-sdk ANDROID_SDK_ROOT=/opt/android-sdk \
-  npm run package:android
-npm audit --omit=dev
 npm run verify:billing
 ```
 
-Do not release until both P1 defects are closed and the exact clean suite is
-stable. The three P2 contract gaps should be repaired in the same follow-up.
+- `npm ci`: 149 packages; audit: 0 vulnerabilities.
+- Vitest: 19/19 passed in four files.
+- Playwright 1.58.2: 22/22 passed across desktop Chromium and 390 px mobile.
+  Coverage includes the 10-run race stress, two-page local delivery, keyboard,
+  reduced motion, axe, desktop/mobile overflow, width and height of targets,
+  import/export, demo isolation, privacy traffic, offline reload, legal pages,
+  APK integrity, and error recovery.
+- All nine `.factory/claims.json` commands passed from their declared entry
+  points.
+- Type check and production build passed. Initial main JS is 25,970 B
+  (9.22 kB gzip); CSS is 15,846 B (4.34 kB gzip); mobile hero is 14,210 B.
+- Local `verify-url.sh` passed in 578 ms: title, `lang=en`, one H1, main,
+  image alt handling, labelled buttons, and zero console/page errors.
+- Reviewed 1440×1000 and 390×844 screenshots have no horizontal overflow.
+- Lighthouse 13.0.1 mobile: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; FCP 0.9 s, LCP 1.2 s, CLS 0, TBT 0 ms.
+- Offline reload passed. A forced v4→test-v5 service-worker update displayed
+  the prompt, waited for `Update now`, claimed the page, deleted v4 caches, and
+  reloaded with only test-v5 shell/runtime caches and zero errors. `dist/` was
+  then rebuilt back to the shipping v4 worker.
+- `npm run package:android`: 185 Gradle tasks passed native unit tests, lint,
+  and debug assembly. Standalone final lint passed 103 tasks with 0 errors and
+  20 non-blocking generated/dependency advisories.
+- APK: 10,798,359 B; SHA-256
+  `b3172b04af48ced7639ae9126febe975b0e6085a591f3de415c4a281b8d885a2`.
+  `apksigner` verifies v1/v2. `aapt` reports app ID
+  `in.sociobot.quietdictationbridge`, min SDK 23, target/compile SDK 35, and
+  only Internet, microphone, vibration, and scoped AndroidX receiver
+  permissions. The APK contains the repaired HTML and v4 worker.
+- `git diff --check`, `git fsck --no-dangling`, tracked-secret-name scan, and
+  APK/public-to-dist checksum parity passed.
+
+## Deployment
+
+Static deployment target:
+
+```sh
+npm run build
+/opt/fleet/lib/deploy-static.sh quiet-dictation-bridge /work/repo/dist
+```
+
+Post-deployment live identity, response policy, behavior, byte parity,
+offline/demo, and APK/hash evidence will be appended after deployment.
+
+## Known limits
+
+- The APK is debug-signed for QA. A factory release-signing work order must use
+  the external keystore; no signing secret is stored here.
+- This container has no attached Android device. Native compilation, tests,
+  lint, package contents, signature, permissions, and web assets were verified;
+  physical Android 12+ recognition, permission UI, haptic/tone, back gesture,
+  and two-device LAN behavior still need a release-device smoke test.

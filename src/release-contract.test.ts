@@ -2,24 +2,18 @@ import { readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { PRODUCTION_BILLING_API, billingApiBase, productCheckoutUrl, registeredCheckoutUrl } from './billing';
 import { chooseSpeechPath } from './speech';
 
 const root = resolve(import.meta.dirname, '..');
 const readProjectFile = (path: string) => readFileSync(resolve(root, path), 'utf8');
 
 describe('release regression contracts', () => {
-  it('uses the live Sociobot API unless a preview build explicitly overrides it', () => {
-    expect(billingApiBase()).toBe(PRODUCTION_BILLING_API);
-    expect(billingApiBase('https://pilot-api.sociobot.in/')).toBe('https://pilot-api.sociobot.in');
-  });
-
-  it('exposes checkout only when the public catalog enables this exact product', () => {
-    const expected = productCheckoutUrl(PRODUCTION_BILLING_API);
-    expect(registeredCheckoutUrl({ data: [] }, PRODUCTION_BILLING_API)).toBeNull();
-    expect(registeredCheckoutUrl({ data: [{ slug: 'another-product', checkout_url: expected }] }, PRODUCTION_BILLING_API)).toBeNull();
-    expect(registeredCheckoutUrl({ data: [{ slug: 'quiet-dictation-bridge', checkout_url: 'https://example.com/checkout' }] }, PRODUCTION_BILLING_API)).toBeNull();
-    expect(registeredCheckoutUrl({ data: [{ slug: 'quiet-dictation-bridge', checkout_url: expected }] }, PRODUCTION_BILLING_API)).toBe(expected);
+  it('does not advertise the unavailable paid offer or request a license', () => {
+    const page = readProjectFile('index.html');
+    expect(page).not.toContain('$9');
+    expect(page).not.toContain('id="buy-link"');
+    expect(page).not.toContain('id="license-token"');
+    expect(page).toContain('<option value="warm">Warm chime</option>');
   });
 
   it('prefers Android’s native offline recognizer when running in the installed app', () => {
@@ -28,7 +22,7 @@ describe('release regression contracts', () => {
     expect(chooseSpeechPath(false, false)).toBe('unavailable');
   });
 
-  it('keeps the Android speech bridge native, permission-gated, and offline-only', () => {
+  it('@claim:on-device-speech keeps the Android speech bridge native, permission-gated, and offline-only', () => {
     const plugin = readProjectFile('android/app/src/main/java/in/sociobot/quietdictationbridge/LocalSpeechPlugin.java');
     const activity = readProjectFile('android/app/src/main/java/in/sociobot/quietdictationbridge/MainActivity.java');
     expect(plugin).toContain('SpeechRecognizer');
@@ -79,11 +73,11 @@ describe('release regression contracts', () => {
     const manifest = readProjectFile('public/manifest.webmanifest');
     const client = readProjectFile('src/main.ts');
 
-    expect(serviceWorker).toContain("const VERSION = 'quiet-bridge-v3'");
+    expect(serviceWorker).toContain("const VERSION = 'quiet-bridge-v4'");
     expect(serviceWorker).toContain('await self.clients.claim()');
     expect(serviceWorker).toContain("event.data?.type === 'SKIP_WAITING'");
     expect(client).toContain("postMessage({ type: 'SKIP_WAITING' })");
     expect(client).toContain("show('#update-toast', true)");
-    expect(manifest).toContain('"start_url": "/?v=3&source=pwa"');
+    expect(manifest).toContain('"start_url": "/?v=4&source=pwa"');
   });
 });

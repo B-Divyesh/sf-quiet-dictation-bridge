@@ -8,6 +8,10 @@ the confirmed text over an encrypted peer-to-peer connection.
 
 Live site: <https://quiet-dictation-bridge.sociobot.in>
 
+Try the isolated sample at
+<https://quiet-dictation-bridge.sociobot.in/?demo=1>. Its three phrases use a
+separate IndexedDB database and never mix with real transcript history.
+
 ## What v1 does
 
 - Creates an explicit WebRTC connection directly between phone and computer.
@@ -20,21 +24,18 @@ Live site: <https://quiet-dictation-bridge.sociobot.in>
   a visible listening state.
 - Lets the speaker edit the draft, then gives a local confirmation tone and
   haptic before sending.
-- Stores received phrases in IndexedDB, with manual copy, clear, and JSON
-  export controls. The browser sandbox requires the user to paste into the
-  destination app with Ctrl/Cmd + V.
+- Stores received phrases in IndexedDB, with manual copy, clear, and validated
+  JSON import and export controls. The browser sandbox requires the user to
+  paste into the destination app with Ctrl/Cmd + V.
 - Works offline after the first successful load, including the legal pages.
 - Includes a Capacitor Android app with product-specific icon/splash assets,
   runtime microphone permission, and a native local-speech bridge.
 
-The core bridge is free. The optional $9 one-time Quiet Kit license adds
-automatic clipboard copy where the browser permits it, session labels in
-exports, and alternate confirmation tones. Accessibility, safety, and export
-are never paywalled. Checkout and verification use Sociobot’s hosted billing
-API; no payment provider code is embedded here.
-The purchase control confirms that the product is enabled in Sociobot's public
-catalog before navigating, so an incomplete factory registration never opens an
-unavailable checkout. Existing licenses can always be restored independently.
+The researched plan calls for a one-time Quiet Kit purchase. That product is
+not registered in the factory billing catalog, so this release advertises no
+purchase. Automatic copy, session labels, and all confirmation tones are
+included without payment or a license. This keeps the shipped offer honest and
+the complete bridge useful while factory registration remains unavailable.
 
 ## Run and test
 
@@ -99,19 +100,17 @@ On Android 12 or newer, install the language you use in Android Speech Services
 before dictating. The app deliberately reports an actionable setup message if a
 device has no on-device recognizer instead of sending audio to a cloud service.
 
-## Configuration
+## Billing status
 
-Production builds default to `https://api.sociobot.in`. Preview builds that use
-the registered test product must explicitly set
-`VITE_BILLING_API_BASE=https://pilot-api.sociobot.in`. The endpoint is derived
-from the product slug; there is no hard-coded billing product ID. Run
-`npm run verify:billing` to check the public catalog and, when registered, the
-hosted checkout redirect.
+Run `npm run verify:billing` to record whether the researched product is in the
+public catalog. The shipped page contains no checkout or license request while
+that external registration is unavailable.
 
 ## Privacy and design
 
 See [the privacy policy](https://quiet-dictation-bridge.sociobot.in/privacy/),
 [the terms](https://quiet-dictation-bridge.sociobot.in/terms/),
+[the demo contract](.factory/demo.md), [the tested claims](.factory/claims.json),
 [the researched brief](.factory/brief.json), and
 [the visual thesis](.factory/design.md). The hero art is original AI-generated
 imagery; its prompt, source, review, and provenance are recorded under
