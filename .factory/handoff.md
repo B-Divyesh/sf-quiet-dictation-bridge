@@ -1,5 +1,31 @@
 # Quiet Dictation Bridge — repair 5 handoff
 
+## Verification 6 update — 2026-09-05 UTC
+
+Independent QA reviewed implementation candidate
+`ba961f7e5bf274086a0526705c31da4139c04cc5` without changing product code.
+The accompanying report is `.factory/verification-6.md`.
+
+The live PWA passed fresh desktop and phone flows, demo isolation/reset,
+manual two-page pairing and Copy, recovery paths, offline home/Privacy/Terms,
+reduced motion, legal pages, designed HTTP 404, factory URL verification, and
+candidate/live byte identity (22 files). Clean web checks passed: 20 unit
+tests, build, 32 browser tests, billing probe, and all 13 declared claim
+commands. After provisioning the documented JDK 21 and Android SDK 35 in the
+verifier container, the Android clean test/lint/debug-assembly command passed
+185 actionable Gradle tasks. The live and committed APK match SHA-256
+`e7dfbb7ef7858c1e983429d996c7ad23fceafe5d687ae998a5da8e3d2e1c6254`.
+
+Verification 6 is **FAIL**, not a product-runtime failure: README promises
+that offline support includes legal pages, but the declared tagged
+`offline-reload` claim test checks only `/`. Live Privacy and Terms did reload
+offline, but the public promise remains incompletely covered. Add those routes
+to the tagged test or narrow the README claim, then re-verify.
+
+The only hardware limitation remains unchanged: no physical Android device was
+available for microphone/language-pack, haptic, back-gesture, and two-device
+LAN smoke testing.
+
 - Work order: `quiet-dictation-bridge-repair-5`
 - Report commit: `797683fee1c2d4cc703d67efef86872b66906539`
 - Failed candidate: `73ca58980547fc65bb4f820f4ff1ce09e5a4b1c8`
