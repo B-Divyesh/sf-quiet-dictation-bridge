@@ -1,4 +1,39 @@
-# Quiet Dictation Bridge — repair 6 handoff
+# Quiet Dictation Bridge — verification 7 handoff
+
+## Independent result — 2026-09-06 UTC
+
+Verification 7 reviewed implementation candidate
+`221d7f9be4bf71d9e6fb45d64fffab1addbefe10` and documentation candidate
+`c108386455c8da3d38063f23c61f8f8221446700` without changing product code.
+The report is `.factory/verification-7.md`.
+
+The verdict is **PASS** with zero findings and zero untested public claims. All
+13 declared claim commands passed from the clean setup. The repaired
+`offline-reload` command independently opened and reloaded home, Privacy, and
+Terms offline in both Playwright projects. Baseline checks passed: `npm ci`,
+`npm audit --omit=dev`, 20/20 unit tests, production build, 32/32 browser tests,
+the billing-state probe, and Android clean test/lint/debug assembly with 185
+executed Gradle tasks.
+
+Fresh live desktop and phone checks covered the cold first screen, one-click
+sample, persistent sample label, reset, real-data isolation, two-page pairing,
+invalid-code recovery, reviewed delivery, manual copy, reload persistence,
+10,005-character rejection, keyboard/focus, 200% text, reduced motion, axe,
+privacy requests, legal routes, designed HTTP 404, offline legal reloads, and
+the user-controlled update path. All 22 public payload files byte-match the
+live deployment. Lighthouse mobile scored 100 in all four categories with
+LCP 1.1 s and CLS 0.
+
+Evidence is in `/work/.evidence/verify-7/`. The report is also copied to
+`/work/.evidence/qa-report.md`, and `/work/.evidence/qa-result.json` records the
+machine-readable PASS.
+
+The only remaining operational follow-ups are a physical Android hardware
+smoke and factory billing registration. Neither is an untested claim in this
+free release: native behavior is covered by the shipped contract/JVM/build
+checks, and the release explicitly makes no paid offer.
+
+## Previous repair 6 handoff
 
 ## Result — 2026-09-06 UTC
 
