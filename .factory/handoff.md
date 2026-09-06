@@ -1,4 +1,33 @@
-# Quiet Dictation Bridge — verification 7 handoff
+# Quiet Dictation Bridge — review 1 handoff
+
+## Strict review result — 2026-09-06 UTC
+
+Review 1 examined implementation candidate
+`221d7f9be4bf71d9e6fb45d64fffab1addbefe10` and documentation candidate
+`85720591bdf5b28bd306011fcd31fa2ed4a6f113` without changing product code.
+The report is `.factory/review-1.md`.
+
+The verdict is **FAIL** with one P1 finding and zero untested public claims.
+In the normal live input path, pasting 10,005 characters into the phone review
+field silently yields a 10,000-character phrase which **Confirm & send**
+delivers without a warning. This falsifies the public promise that over-limit
+phrases are never silently trimmed and remain available for editing. The
+existing tagged test bypasses the textarea's browser `maxlength`, so it misses
+the user path. Repair the input and replace that test with a normal paste/input
+boundary test before re-review.
+
+From a clean checkout, all 13 declared claim commands passed independently,
+as did `npm audit --omit=dev`, 20/20 unit tests, production build, billing
+probe, and 32/32 browser tests. With JDK 21 and Android SDK 35 installed,
+`./gradlew --no-daemon clean test lint assembleDebug` also passed. These gates
+do not override the observed false phrase-limit claim.
+
+Fresh live desktop/phone checks covered the initial job/audience/action,
+one-click sample/isolation/reset, invalid-code recovery, paired delivery,
+reload persistence, cleared pairing codes, headers, legal routes, and designed
+404. Evidence is in `/work/.evidence/review-1/`.
+
+## Previous verification 7 handoff
 
 ## Independent result — 2026-09-06 UTC
 
