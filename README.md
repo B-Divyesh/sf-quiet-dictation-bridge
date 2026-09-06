@@ -41,10 +41,12 @@ complete bridge useful while factory registration remains unavailable.
 
 ## Run and test
 
-Requires Node.js 22+ and npm.
+Requires Node.js 22+ and npm. Android checks also require JDK 21 and Android
+SDK platform 35. Set `JAVA_HOME` to the JDK and set `ANDROID_HOME` and
+`ANDROID_SDK_ROOT` to the SDK before running them.
 
 ```sh
-npm install
+npm ci
 npm run dev
 npm test
 npm run test:android
