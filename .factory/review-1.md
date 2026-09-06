@@ -46,11 +46,12 @@ The public `phrase-limit` claim says: “A confirmed phrase is limited to 10,000
 characters and is never silently trimmed.” README makes the same promise: an
 over-limit draft is refused and left in place for editing.
 
-On the live paired phone and desktop flow, normal Playwright `fill()` input of
-10,005 `a` characters into `#draft-text` resulted in a 10,000-character field.
-Choosing **Confirm & send** then cleared the field, delivered one transcript,
-and left `#bridge-alert` empty. This is the normal paste/input path a visitor
-uses, not a source-level probe.
+On the live paired phone and desktop flow, a real clipboard paste (10,005 `a`
+characters copied to the browser clipboard, then Ctrl+V into `#draft-text`)
+resulted in a 10,000-character field with no alert. Choosing **Confirm &
+send** then cleared the field, delivered one transcript, and left
+`#bridge-alert` empty. This is the normal paste/input path a visitor uses, not
+a source-level probe.
 
 `index.html` gives the textarea `maxlength="10000"`. The tagged test avoids
 that browser path by assigning a 10,005-character value directly through
