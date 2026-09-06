@@ -99,6 +99,7 @@ h2 { margin-bottom: 18px; font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: .9
 .explain, .microcopy, .support-note { max-width: 64ch; color: var(--fog); }
 .device-panel label { display: block; margin: 24px 0 8px; font-weight: 750; }
 textarea, input[type="text"], select { width: 100%; min-height: 48px; color: var(--paper); background: #091016; border: 1px solid #3b4e59; border-radius: 10px; padding: 12px 14px; }
+textarea[aria-invalid="true"] { border-color: var(--danger); box-shadow: 0 0 0 1px var(--danger); }
 input:disabled, select:disabled { cursor: not-allowed; opacity: .62; }
 .paid-mark { color: var(--ember); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
 textarea { min-height: 104px; resize: vertical; line-height: 1.45; }
@@ -132,6 +133,8 @@ textarea[readonly] { color: #c4d0d5; font: 13px/1.5 ui-monospace, SFMono-Regular
 .talk-button.is-listening .talk-rings { border-color: var(--danger); animation: breathe 1.5s ease-in-out infinite; }
 @keyframes breathe { 50% { transform: scale(1.08); opacity: .38; } }
 .dictation-workspace label { text-align: left; }
+.dictation-workspace #draft-limit { min-height: 25px; margin-bottom: 0; text-align: left; }
+.dictation-workspace #draft-limit.over-limit { color: var(--danger); font-weight: 700; }
 .send-row { justify-content: flex-end; margin-top: 14px; }
 
 .how-section { border-top: 1px solid var(--line); }

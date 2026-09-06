@@ -33,6 +33,10 @@ banned marketing term appears.
 | Leave this screen open while your computer connects. | 8 |
 | Keyboard: hold Space or Enter while this button is focused. | 10 |
 | Up to 10,000 characters per confirmed phrase. | 8 |
+| This draft has 10,005 characters. | 5 |
+| Shorten it by 5 before sending. | 6 |
+| This phrase is 10,005 characters. | 5 |
+| Shorten it to 10,000 characters or fewer before sending. | 9 |
 | Pairing is temporary. | 3 |
 | Reloading either page closes the connection and clears the codes. | 10 |
 | Exchange one-time codes. | 3 |

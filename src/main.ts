@@ -5,7 +5,7 @@ import { addTranscript, addTranscripts, clearTranscripts, getTranscripts, type T
 import { parseTranscriptImport } from './import';
 import { LocalPeer } from './peer';
 import { chooseSpeechPath, type SpeechPath } from './speech';
-import { validateDraftForSend } from './transcript';
+import { MAX_TRANSCRIPT_LENGTH, validateDraftForSend } from './transcript';
 
 const $ = <T extends Element>(selector: string) => document.querySelector<T>(selector);
 const show = (selector: string, visible: boolean) => { $(selector)?.toggleAttribute('hidden', !visible); };
@@ -205,6 +205,26 @@ let listening = false;
 let speechPath: SpeechPath = 'unavailable';
 let nativeListeners: ListenerHandle[] = [];
 
+function updateDraftLimit() {
+  const draft = $('#draft-text') as HTMLTextAreaElement | null;
+  const limit = $('#draft-limit');
+  if (!draft || !limit) return;
+  const length = draft.value.trim().length;
+  const overLimit = length > MAX_TRANSCRIPT_LENGTH;
+  if (overLimit) draft.setAttribute('aria-invalid', 'true');
+  else draft.removeAttribute('aria-invalid');
+  limit.classList.toggle('over-limit', overLimit);
+  limit.textContent = overLimit
+    ? `This draft has ${length.toLocaleString()} characters. Shorten it by ${(length - MAX_TRANSCRIPT_LENGTH).toLocaleString()} before sending.`
+    : `Up to ${MAX_TRANSCRIPT_LENGTH.toLocaleString()} characters per confirmed phrase.`;
+}
+
+function setDraftText(text: string) {
+  const draft = $('#draft-text') as HTMLTextAreaElement;
+  draft.value = text.trim();
+  updateDraftLimit();
+}
+
 function setTalkState(active: boolean) {
   listening = active;
   $('#talk-button')?.classList.toggle('is-listening', active);
@@ -223,8 +243,8 @@ async function setupNativeSpeech() {
       ? 'Android offline recognition is ready. Your draft stays on this phone until you confirm.'
       : 'Android will ask for microphone permission when you hold to talk. Recognition is requested on-device only.';
     nativeListeners = await Promise.all([
-      NativeLocalSpeech.addListener('partial', ({ text }) => { ($('#draft-text') as HTMLTextAreaElement).value = text.trim(); }),
-      NativeLocalSpeech.addListener('result', ({ text }) => { ($('#draft-text') as HTMLTextAreaElement).value = text.trim(); }),
+      NativeLocalSpeech.addListener('partial', ({ text }) => { setDraftText(text); }),
+      NativeLocalSpeech.addListener('result', ({ text }) => { setDraftText(text); }),
       NativeLocalSpeech.addListener('state', ({ text }) => {
         if (text === 'listening') setTalkState(true);
         if (text === 'review') setTalkState(false);
@@ -268,7 +288,7 @@ function setupSpeechRecognition() {
   recognition.onresult = (event) => {
     let text = '';
     for (let index = 0; index < event.results.length; index++) text += event.results[index][0].transcript;
-    ($('#draft-text') as HTMLTextAreaElement).value = text.trim();
+    setDraftText(text);
   };
   recognition.onerror = (event) => {
     stopListening();
@@ -327,9 +347,11 @@ function sendDraft() {
   if (!validation.ok) return announce(validation.message);
   const { text } = validation;
   try {
+    clearAlert();
     confirmationFeedback();
     peer?.sendTranscript(text);
     draft.value = '';
+    updateDraftLimit();
     const support = $('#speech-support');
     if (support) support.textContent = 'Confirmed and sent over the encrypted local link.';
   } catch (error) { announce(error instanceof Error ? error.message : 'Could not send the phrase.'); }
@@ -390,7 +412,8 @@ function bindEvents() {
   talk?.addEventListener('keydown', (event) => { const keyEvent = event as KeyboardEvent; if (keyEvent.repeat) return; if (keyEvent.key === ' ' || keyEvent.key === 'Enter') { keyEvent.preventDefault(); startListening(); } });
   talk?.addEventListener('keyup', (event) => { const keyEvent = event as KeyboardEvent; if (keyEvent.key === ' ' || keyEvent.key === 'Enter') { keyEvent.preventDefault(); stopListening(); } });
   $('#send-draft')?.addEventListener('click', sendDraft);
-  $('#discard-draft')?.addEventListener('click', () => { ($('#draft-text') as HTMLTextAreaElement).value = ''; });
+  $('#draft-text')?.addEventListener('input', updateDraftLimit);
+  $('#discard-draft')?.addEventListener('click', () => { setDraftText(''); });
   $('#export-history')?.addEventListener('click', () => void exportHistory());
   $('#import-history-button')?.addEventListener('click', () => $<HTMLInputElement>('#import-history')?.click());
   $('#import-history')?.addEventListener('change', (event) => {

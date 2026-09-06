@@ -228,9 +228,10 @@ test('@claim:pairing-memory reload clears pairing codes and the temporary connec
   await context.close();
 });
 
-test('a too-long confirmed draft is kept for editing and is never sent truncated', async ({ browser }) => {
+test('@claim:phrase-limit a pasted over-limit draft is preserved, rejected, and can be corrected without data loss', async ({ browser }) => {
   test.setTimeout(45_000);
   const context = await browser.newContext();
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: 'http://127.0.0.1:4173' });
   const desktop = await context.newPage();
   const phone = await context.newPage();
   await Promise.all([desktop.goto('/'), phone.goto('/')]);
@@ -246,15 +247,27 @@ test('a too-long confirmed draft is kept for editing and is never sent truncated
   await desktop.getByRole('button', { name: 'Connect phone' }).click();
   await expect(phone.locator('#dictation-workspace')).toBeVisible({ timeout: 15_000 });
 
-  const tooLong = 'a'.repeat(10_000) + ' tail';
-  await phone.locator('#draft-text').evaluate((field, value) => {
-    (field as HTMLTextAreaElement).value = value as string;
-    field.dispatchEvent(new Event('input', { bubbles: true }));
-  }, tooLong);
+  const exactLimit = 'a'.repeat(10_000);
+  const tooLong = `${exactLimit} tail`;
+  await phone.evaluate((value) => navigator.clipboard.writeText(value), tooLong);
+  await phone.locator('#draft-text').focus();
+  await phone.keyboard.press('Control+V');
+
+  await expect(phone.locator('#draft-text')).toHaveValue(tooLong);
+  await expect(phone.locator('#draft-text')).toHaveAttribute('aria-invalid', 'true');
+  await expect(phone.locator('#draft-limit')).toHaveText('This draft has 10,005 characters. Shorten it by 5 before sending.');
   await phone.getByRole('button', { name: 'Confirm & send' }).click();
   await expect(phone.locator('#bridge-alert')).toContainText('Shorten it to 10,000 characters or fewer');
   await expect(phone.locator('#draft-text')).toHaveValue(tooLong);
   await expect(desktop.locator('.transcript')).toHaveCount(0);
+
+  await phone.locator('#draft-text').press('End');
+  for (let index = 0; index < 5; index++) await phone.keyboard.press('Backspace');
+  await expect(phone.locator('#draft-text')).toHaveValue(exactLimit);
+  await expect(phone.locator('#draft-text')).not.toHaveAttribute('aria-invalid', 'true');
+  await phone.getByRole('button', { name: 'Confirm & send' }).click();
+  await expect(desktop.locator('.transcript')).toHaveCount(1);
+  expect(await desktop.locator('.transcript p').textContent()).toBe(exactLimit);
   await context.close();
 });
 

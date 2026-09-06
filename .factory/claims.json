@@ -87,7 +87,7 @@
     "id": "phrase-limit",
     "claim": "A confirmed phrase is limited to 10,000 characters and is never silently trimmed.",
     "where": "phone workspace and README",
-    "test": "npm test -- -t @claim:phrase-limit",
-    "sandbox": "pure validation fixture containing a 10,005-character draft"
+    "test": "npm run test:e2e -- --grep @claim:phrase-limit",
+    "sandbox": "two paired pages in a fresh context; paste 10,005 characters through the browser clipboard, prove the draft and warning remain, reject delivery, edit to 10,000, and compare the exact received phrase"
   }
 ]

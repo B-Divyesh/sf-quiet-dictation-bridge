@@ -88,11 +88,11 @@ describe('release regression contracts', () => {
     const manifest = readProjectFile('public/manifest.webmanifest');
     const client = readProjectFile('src/main.ts');
 
-    expect(serviceWorker).toContain("const VERSION = 'quiet-bridge-v5'");
+    expect(serviceWorker).toContain("const VERSION = 'quiet-bridge-v6'");
     expect(serviceWorker).toContain('await self.clients.claim()');
     expect(serviceWorker).toContain("event.data?.type === 'SKIP_WAITING'");
     expect(client).toContain("postMessage({ type: 'SKIP_WAITING' })");
     expect(client).toContain("show('#update-toast', true)");
-    expect(manifest).toContain('"start_url": "/?v=5&source=pwa"');
+    expect(manifest).toContain('"start_url": "/?v=6&source=pwa"');
   });
 });
