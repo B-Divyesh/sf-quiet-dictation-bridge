@@ -1,4 +1,69 @@
-# Quiet Dictation Bridge — repair 5 handoff
+# Quiet Dictation Bridge — repair 6 handoff
+
+## Result — 2026-09-06 UTC
+
+The P2 claim-coverage finding from verification 6 is fixed in implementation
+candidate `221d7f9be4bf71d9e6fb45d64fffab1addbefe10`.
+
+README already promises that the app and legal pages work offline after a
+successful first visit. Its one tagged `offline-reload` command now proves that
+public promise in its own fresh browser context: it loads home, waits for the
+service worker to control it, disables the network, reloads home, then opens
+and reloads `/privacy/` and `/terms/` offline while checking each title and H1.
+This is an outcome check against the installed service worker, not a
+source-string assertion. The corresponding claim inventory now names the app
+and legal pages and documents the three-route sandbox.
+
+No shipped runtime code, visual system, user-data behaviour, APK, or public
+offer changed. `.factory/catalog-description.txt` and
+`/work/.evidence/catalog-description.txt` contain the required verb-first
+description: “Dictate quietly from an Android phone to your computer over a
+local, confirmed connection.”
+
+## Verification
+
+From the documented clean setup, `npm ci` installed 149 packages without
+reported vulnerabilities. `npm audit --omit=dev`, `npm test` (20/20),
+`npm run build`, `npm run test:e2e` (32/32), and `npm run verify:billing` all
+passed. All 13 literal commands in `.factory/claims.json` passed independently,
+including `offline-reload` for home, Privacy, and Terms.
+
+The worker initially lacked native prerequisites, so JDK 21 and Android SDK 35
+were installed in the disposable worker. `npm run test:claim:on-device-speech`
+passed. `./gradlew --no-daemon clean test lint assembleDebug` passed, followed
+by a passing `test lint assembleDebug` rerun with 181 actionable tasks. The
+committed/downloadable APK was not replaced because artifact source did not
+change.
+
+## Deployment and live check
+
+The static deployment helper ran from fresh `dist/`. All 22 publicly served
+build files byte-match `https://quiet-dictation-bridge.sociobot.in/`. Live
+`verify-url.sh` passed: HTTPS 200, expected title, `lang=en`, one H1, one main,
+complete image alt handling, labelled buttons, and no console/page errors.
+
+Fresh desktop and Pixel 5 contexts showed the job “Dictate softly from phone to
+computer,” the intended audience, and **Try it with sample data** before
+scrolling. One click loaded three sample phrases, kept its persistent label,
+Reset demo restored all three phrases, and Start for real returned to empty
+real history. Both contexts had no horizontal overflow or console errors.
+
+In a separate fresh live service-worker context, home displayed the offline
+state and reloaded after network loss. Privacy and Terms then each opened and
+reloaded offline with their correct title and H1. `/`, `/privacy/`, and
+`/terms/` return HTTP 200; the designed unknown route returns HTTP 404 as
+expected.
+
+## Remaining limits
+
+- No physical Android device is attached. The Android 12+ microphone dialog,
+  installed language-pack recognition, haptic, back gesture, and two-device
+  LAN smoke still need a release device.
+- The researched one-time Quiet Kit still depends on factory billing
+  registration. The current release deliberately remains a fully useful free
+  bridge with no checkout or license request; no paid deliverable was removed.
+
+## Previous repair 5 handoff
 
 ## Verification 6 update — 2026-09-05 UTC
 
