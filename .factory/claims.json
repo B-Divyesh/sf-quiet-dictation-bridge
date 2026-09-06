@@ -15,10 +15,10 @@
   },
   {
     "id": "offline-reload",
-    "claim": "The app shell works offline after the first successful visit.",
+    "claim": "The app and legal pages work offline after the first successful visit.",
     "where": "README and offline banner",
     "test": "npm run test:e2e -- --grep @claim:offline-reload",
-    "sandbox": "fresh browser context; install service worker; set context offline; reload"
+    "sandbox": "fresh browser context; install service worker from home; set context offline; reload home, Privacy, and Terms"
   },
   {
     "id": "json-import",

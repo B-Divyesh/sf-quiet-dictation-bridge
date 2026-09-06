@@ -1,0 +1,1 @@
+Dictate quietly from an Android phone to your computer over a local, confirmed connection.

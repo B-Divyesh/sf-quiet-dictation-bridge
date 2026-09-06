@@ -258,13 +258,34 @@ test('a too-long confirmed draft is kept for editing and is never sent truncated
   await context.close();
 });
 
-test('@claim:offline-reload app shell reloads offline after first visit', async ({ page, context }) => {
-  await page.goto('/');
-  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
-  await context.setOffline(true);
-  await expect(page.getByText(/Internet offline/)).toBeVisible();
-  await page.reload();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Dictate softly');
+test('@claim:offline-reload app and legal pages open offline after first visit', async ({ browser }) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  try {
+    await page.goto('/');
+    await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+
+    await context.setOffline(true);
+    await expect(page.getByText(/Internet offline/)).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Dictate softly');
+
+    for (const legalPage of [
+      { path: '/privacy/', title: 'Privacy — Quiet Dictation Bridge', heading: 'Your dictation stays local.' },
+      { path: '/terms/', title: 'Terms — Quiet Dictation Bridge', heading: 'Use it deliberately.' },
+    ]) {
+      await page.goto(legalPage.path);
+      await expect(page).toHaveTitle(legalPage.title);
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(legalPage.heading);
+      await page.reload();
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(legalPage.heading);
+    }
+  } finally {
+    await context.close();
+  }
 });
 
 test('legal and not-found pages are standalone, accessible, and responsive', async ({ page }) => {
