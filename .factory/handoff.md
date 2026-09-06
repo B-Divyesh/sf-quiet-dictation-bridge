@@ -1,11 +1,10 @@
-# Quiet Dictation Bridge — verification 8 handoff
+# Quiet Dictation Bridge — review 2 handoff
 
 ## Result
 
-Independent verification 8 passed with zero findings and zero untested public
-claims. The reviewed implementation is
-`0cc72ed2d108997ac2f722ed592293f0a1159dd5`; the verification documentation
-commit is `b9646b48ae69ff5ece5fa17a67ddd409c7ccf649`.
+Strict review 2 passed with zero findings and zero untested public claims. The
+reviewed implementation is `0cc72ed2d108997ac2f722ed592293f0a1159dd5`; the
+review documentation commit is `59e7698ed4ac4b338df6cc78537c1d1da236f113`.
 
 The live product is <https://quiet-dictation-bridge.sociobot.in/>. Its normal
 Ctrl+V boundary path now preserves a 10,005-character draft, warns and blocks
@@ -14,7 +13,7 @@ previous strict-review P1 data-integrity finding.
 
 ## Verification
 
-Clean checkout: `/tmp/qdb-verify8-clean.O4SlJV` at the documentation SHA,
+Clean checkout: `/tmp/qdb-review2-clean.fJEdyo/app` at the documentation SHA,
 containing the implementation candidate.
 
 - `npm ci`: 149 packages, 0 reported vulnerabilities.
@@ -28,7 +27,8 @@ containing the implementation candidate.
 - `npm run verify:billing`: passed and confirmed no registered offer or
   checkout/license flow is advertised.
 - `./gradlew --no-daemon clean test lint assembleDebug`: passed after installing
-  JDK 21 and Android SDK 35 and exporting the README environment variables.
+  JDK 21 and Android SDK 35 and exporting the README environment variables
+  (185 actionable tasks).
 - `git diff --check`: passed.
 
 The downloadable debug APK is 10,800,178 bytes. Its SHA-256 is
@@ -48,15 +48,15 @@ Fresh Chromium checks against HTTPS showed:
   “Dictate softly from phone to computer,” the intended audience, and visible
   **Try it with sample data** action. Neither viewport overflows horizontally.
 - One click opens three realistic sample phrases and the persistent demo label.
-  **Reset demo** restores all three. **Start for real** returns to empty real
-  history.
+  **Reset demo** restores all three. **Start for real** returns to the separate
+  real history without changing it.
 - Empty answer, empty invitation, and malformed invitation inputs each show a
   specific recovery message. Correcting the input allows pairing.
 - A real Ctrl+V paste retained 10,005 characters. The live warning read “This
   draft has 10,005 characters. Shorten it by 5 before sending.” Confirming was
   refused, the field stayed intact, and the receiver remained empty.
 - Removing five characters and confirming delivered exactly 10,000 characters.
-  The `Verification 8` session label remained after receiver reload.
+  The `Review 2` session label remained after receiver reload.
 - The complete live pairing and boundary flow made no cross-origin request and
   logged no console or page error.
 - Home, Privacy, and Terms opened offline in a fresh service-worker context with
@@ -75,7 +75,8 @@ Fresh Chromium checks against HTTPS showed:
   Accessibility, 100 Best Practices, and 100 SEO. The fresh build's main JS is
   26.19 kB and CSS is 16.39 kB uncompressed.
 
-Evidence is under `/work/.evidence/verify-8/`.
+Evidence is under `/work/.evidence/review-2/`; the full report is
+`.factory/review-2.md`.
 
 ## Earlier findings
 
